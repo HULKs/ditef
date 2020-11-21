@@ -4,11 +4,11 @@ setuptools.setup(
     name='ditef_worker',
     version='0.0.1',
     packages=[
-        'worker',
+        'ditef_worker',
     ],
     entry_points={
         'console_scripts': [
-            'ditef-worker = worker:main',
+            'ditef-worker = ditef_worker:main',
         ],
     },
     install_requires=[
