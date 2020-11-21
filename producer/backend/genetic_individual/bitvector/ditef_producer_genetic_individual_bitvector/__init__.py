@@ -116,10 +116,10 @@ class Individual:
         if self.sum is not None:
             return float(self.sum)
 
-    def ui_url(self) -> str:
+    def api_url(self) -> str:
         return f'/genetic_individual_bitvector/api/{self.id}'
 
-    async def ui_write_update_to_websocket(self, websocket: aiohttp.web.WebSocketResponse):
+    async def api_write_update_to_websocket(self, websocket: aiohttp.web.WebSocketResponse):
         await websocket.send_json(
             data={
                 'genome': self.genome,
@@ -134,20 +134,20 @@ class Individual:
     async def subscribe_to_update(self, websocket: aiohttp.web.WebSocketResponse):
         with self.update_event.subscribe() as subscription:
             while True:
-                await self.ui_write_update_to_websocket(websocket)
+                await self.api_write_update_to_websocket(websocket)
                 await subscription.wait()
 
     @staticmethod
-    def ui_add_routes(app: aiohttp.web.Application):
+    def api_add_routes(app: aiohttp.web.Application):
         app.add_routes([
             aiohttp.web.get(
                 r'/genetic_individual_bitvector/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
-                Individual.ui_handle_websocket,
+                Individual.api_handle_websocket,
             ),
         ])
 
     @staticmethod
-    async def ui_handle_websocket(request: aiohttp.web.Request):
+    async def api_handle_websocket(request: aiohttp.web.Request):
         websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
         await websocket.prepare(request)
 
@@ -160,7 +160,7 @@ class Individual:
             ),
         )
 
-        await individual.ui_write_update_to_websocket(websocket)
+        await individual.api_write_update_to_websocket(websocket)
 
         try:
             async for message in websocket:

@@ -11,7 +11,7 @@ from .json import json_formatter_compressed
 from .population import Population
 
 
-class Ui:
+class Api:
 
     def __init__(self):
         self.yaml = ruamel.yaml.YAML()
@@ -144,7 +144,7 @@ class Ui:
                         'members': {
                             member.id: {
                                 'fitness': member.fitness(),
-                                'url': member.ui_url(),
+                                'url': member.api_url(),
                             }
                             for member in population.members
                         },

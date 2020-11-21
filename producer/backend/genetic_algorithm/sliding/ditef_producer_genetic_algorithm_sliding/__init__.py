@@ -7,7 +7,7 @@ import urllib
 
 import task_router.api_client
 
-from .ui import Ui
+from .api import Api
 from .algorithm import Algorithm
 
 
@@ -48,8 +48,8 @@ async def async_main(**arguments):
             app['arguments']['individual_type'],
         ).Individual.ui_add_routes(app)
 
-        ui = Ui()
-        ui.add_routes(app)
+        api = Api()
+        api.add_routes(app)
 
         runner = aiohttp.web.AppRunner(app)
         await runner.setup()
