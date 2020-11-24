@@ -61,7 +61,7 @@ export default function Individual() {
   }
 
   switch (type) {
-    case "genetic_individual_bitvector": {
+    case "ditef_producer_genetic_individual_bitvector": {
       return <BitvectorIndividual individualId={individualId} url={url} />;
     }
     default: {
