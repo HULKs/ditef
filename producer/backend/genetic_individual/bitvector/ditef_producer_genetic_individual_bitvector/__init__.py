@@ -3,13 +3,13 @@ import asyncio
 import copy
 import json
 import random
-import task_router.api_client
 import textwrap
 import typing
 import uuid
 
-import genetic_algorithm_sliding.event
-import genetic_algorithm_sliding.json
+import ditef_producer_shared.event
+import ditef_producer_shared.json
+import task_router.api_client
 
 
 class Individual:
@@ -38,7 +38,7 @@ class Individual:
         self.genealogy_parents = []
         self.genealogy_children = []
         self.sum: typing.Optional[int] = None
-        self.update_event = genetic_algorithm_sliding.event.BroadcastEvent()
+        self.update_event = ditef_producer_shared.event.BroadcastEvent()
 
     @staticmethod
     def random(task_api_client: task_router.api_client.ApiClient, configuration: dict) -> 'Individual':
@@ -128,7 +128,7 @@ class Individual:
                 'genealogy_parents': self.genealogy_parents,
                 'genealogy_children': self.genealogy_children,
             },
-            dumps=genetic_algorithm_sliding.json.json_formatter_compressed,
+            dumps=ditef_producer_shared.json.json_formatter_compressed,
         )
 
     async def subscribe_to_update(self, websocket: aiohttp.web.WebSocketResponse):

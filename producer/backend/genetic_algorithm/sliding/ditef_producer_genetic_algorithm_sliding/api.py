@@ -6,8 +6,9 @@ import numpy
 import ruamel.yaml
 import simplejson
 
+import ditef_producer_shared.json
+
 from .algorithm import Algorithm
-from .json import json_formatter_compressed
 from .population import Population
 
 
@@ -59,7 +60,7 @@ class Api:
                             for population in algorithm.populations
                         ],
                     },
-                    dumps=json_formatter_compressed,
+                    dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
                 await subscription.wait()
 
@@ -86,7 +87,7 @@ class Api:
                     ),
                 ),
             },
-            dumps=json_formatter_compressed,
+            dumps=ditef_producer_shared.json.json_formatter_compressed,
         )
 
         try:
@@ -115,7 +116,7 @@ class Api:
                     data={
                         'configuration': self.yaml_dumps(population.configuration),
                     },
-                    dumps=json_formatter_compressed,
+                    dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
                 await subscription.wait()
 
@@ -131,7 +132,7 @@ class Api:
                             'mean',
                         ),
                     },
-                    dumps=json_formatter_compressed,
+                    dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
                 await subscription.wait()
 
@@ -149,7 +150,7 @@ class Api:
                             for member in population.members
                         },
                     },
-                    dumps=json_formatter_compressed,
+                    dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
                 await subscription.wait()
 
@@ -187,7 +188,7 @@ class Api:
             data={
                 'configuration': self.yaml_dumps(population.configuration),
             },
-            dumps=json_formatter_compressed,
+            dumps=ditef_producer_shared.json.json_formatter_compressed,
         )
 
         try:

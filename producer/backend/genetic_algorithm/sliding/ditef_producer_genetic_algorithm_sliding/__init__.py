@@ -46,7 +46,7 @@ async def async_main(**arguments):
 
         importlib.import_module(
             app['arguments']['individual_type'],
-        ).Individual.ui_add_routes(app)
+        ).Individual.api_add_routes(app)
 
         api = Api()
         api.add_routes(app)

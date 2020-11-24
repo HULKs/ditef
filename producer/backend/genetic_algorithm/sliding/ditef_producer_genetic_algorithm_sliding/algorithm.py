@@ -1,9 +1,9 @@
 import asyncio
 
+import ditef_producer_shared.event
 import task_router.api_client
 
 from .population import Population
-from .event import BroadcastEvent
 
 
 class Algorithm:
@@ -13,7 +13,7 @@ class Algorithm:
         self.populations = []
         self.pending_individuals = pending_individuals
         self.task_api_client = task_api_client
-        self.metric_event = BroadcastEvent()
+        self.metric_event = ditef_producer_shared.event.BroadcastEvent()
 
     async def add_population(self, configuration: dict):
         population = Population(
