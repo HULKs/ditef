@@ -120,7 +120,7 @@ class Individual:
 
     async def evaluate(self):
         result = await self.task_api_client.run(
-            'genetic_individual_string_evaluator',
+            'ditef_worker_genetic_individual_string',
             payload={
                 'genome': self.genome,
                 'target_string': self.configuration['target_string'],

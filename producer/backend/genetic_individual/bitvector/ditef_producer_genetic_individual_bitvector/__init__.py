@@ -107,7 +107,7 @@ class Individual:
 
     async def evaluate(self):
         self.sum = await self.task_api_client.run(
-            'genetic_individual_bitvector_evaluator',
+            'ditef_worker_genetic_individual_bitvector',
             self.genome,
         )
         self.update_event.notify()
