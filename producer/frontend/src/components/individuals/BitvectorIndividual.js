@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import {
   ArgumentScale,
   Stack,
@@ -45,7 +45,7 @@ import useWebSocket from "../../hooks/useWebSocket";
 //   },
 // });
 
-export default function BitvectorIndividual({ individualId, url }) {
+export default function BitvectorIndividual({ individualId, url, onConnectedChange }) {
   // const classes = useStyles();
   const [genome, setGenome] = useState();
   const [fitness, setFitness] = useState();
@@ -80,7 +80,11 @@ export default function BitvectorIndividual({ individualId, url }) {
       }
     },
   );
-  
+
+  useEffect(() => {
+    onConnectedChange(connected);
+  }, [connected]);
+
   if (error) {
     return <>Error: {JSON.stringify(error)}</>;
   }

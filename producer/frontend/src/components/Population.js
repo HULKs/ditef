@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import {
   ArgumentScale,
   Stack,
@@ -44,7 +44,7 @@ import useWebSocket from "../hooks/useWebSocket";
 //   },
 // });
 
-export default function PopulationList() {
+export default function PopulationList({ onConnectedChange }) {
   // const classes = useStyles();
   const { populationId } = useParams();
   const [detailedMetrics, setCurrentMetrics] = useState();
@@ -84,6 +84,10 @@ export default function PopulationList() {
   useEffect(() => {
     setCurrentConfiguration(configuration);
   }, [configuration]);
+
+  useEffect(() => {
+    onConnectedChange(connected);
+  }, [connected]);
 
   if (error) {
     return <>Error: {JSON.stringify(error)}</>;

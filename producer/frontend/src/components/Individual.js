@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import {
   ArgumentScale,
   Stack,
@@ -49,7 +49,7 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-export default function Individual() {
+export default function Individual({ onConnectedChange }) {
   // const classes = useStyles();
   const { individualId } = useParams();
   const query = useQuery();
@@ -62,7 +62,7 @@ export default function Individual() {
 
   switch (type) {
     case "ditef_producer_genetic_individual_bitvector": {
-      return <BitvectorIndividual individualId={individualId} url={url} />;
+      return <BitvectorIndividual individualId={individualId} url={url} onConnectedChange={onConnectedChange} />;
     }
     default: {
       return <>Unknown individual type "{type}"</>;
