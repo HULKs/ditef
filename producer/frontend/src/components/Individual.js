@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 
 import BitvectorIndividual from "./individuals/BitvectorIndividual";
+import StringIndividual from "./individuals/StringIndividual";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -26,6 +27,9 @@ export default function Individual({ onConnectedChange }) {
   switch (type) {
     case "ditef_producer_genetic_individual_bitvector": {
       return <BitvectorIndividual individualId={individualId} url={url} onConnectedChange={onConnectedChange} />;
+    }
+    case "ditef_producer_genetic_individual_string": {
+      return <StringIndividual individualId={individualId} url={url} onConnectedChange={onConnectedChange} />;
     }
     default: {
       return <Typography>Unknown individual type &quot;{type}&quot;</Typography>;
