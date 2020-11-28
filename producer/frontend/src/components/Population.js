@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
   Button,
+  Container,
+  Grid,
   Paper,
+  Chip,
+  Avatar,
   Table,
   TableBody,
   TableCell,
@@ -11,7 +15,11 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import {
+  makeStyles,
+  withStyles,
+  useTheme,
+} from "@material-ui/core/styles";
 import {
   ArgumentScale,
   Stack,
@@ -35,17 +43,49 @@ import { timeSecond } from "d3-time";
 import {
   Link,
 } from "react-router-dom";
+import classNames from "clsx";
 
 import useWebSocket from "../hooks/useWebSocket";
 
-// const useStyles = makeStyles({
-//   operationsCell: {
-//     whiteSpace: "nowrap",
-//   },
-// });
+const useStyles = makeStyles(theme => ({
+  noWrap: {
+    whiteSpace: "nowrap",
+  },
+  chartHeadingSpacing: {
+    marginTop: theme.spacing(0.5),
+    marginBottom: theme.spacing(1),
+  },
+  memberHeadingSpacing: {
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+  },
+  floatingActionButton: {
+    zIndex: (theme.zIndex.appBar + theme.zIndex.drawer) / 2,
+    position: "fixed",
+    right: theme.spacing(4),
+    bottom: theme.spacing(4),
+  },
+  leftButton: {
+    marginRight: "auto",
+  },
+  chartLegend: {
+    marginLeft: theme.spacing(1.5),
+  },
+  noWrap: {
+    whiteSpace: "nowrap",
+  },
+  noMembers: {
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  lastContainer: {
+    marginBottom: theme.spacing(4),
+  },
+}));
 
 export default function PopulationList({ onConnectedChange }) {
-  // const classes = useStyles();
+  const classes = useStyles();
+  const theme = useTheme();
   const { populationId } = useParams();
   const [detailedMetrics, setCurrentMetrics] = useState();
   const [configuration, setConfiguration] = useState();
@@ -93,13 +133,8 @@ export default function PopulationList({ onConnectedChange }) {
     return <>Error: {JSON.stringify(error)}</>;
   }
 
-  const header = <>
-    <Typography variant="body1">{connected ? "Connected" : "Disconnected"}</Typography>
-    <Typography variant="h2">Population {populationId}</Typography>
-  </>;
-
   if (!detailedMetrics || !configuration || !individualType || !members) {
-    return header;
+    return <Typography>Loading...</Typography>;
   }
 
   const detailedMetricsHistory = detailedMetrics.history.data.map(item =>
@@ -112,9 +147,112 @@ export default function PopulationList({ onConnectedChange }) {
     }));
 
   return <>
-    {header}
-    {individualType}
-    <TableContainer component={Paper}>
+    <Container>
+      <Grid container spacing={2}>
+        <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
+          <Typography variant="h5" className={classes.chartHeadingSpacing}>Size</Typography>
+          <Paper elevation={3}>
+            <Chart data={detailedMetricsHistory} height={theme.spacing(30)}>
+              <ValueScale factory={scaleLinear} />
+              <ArgumentScale factory={scaleTime} />
+              <ArgumentAxis showGrid />
+              <ValueAxis />
+              <LineSeries name="Total" valueField="amount_of_members" argumentField="timestamp" />
+              <AreaSeries name="Evaluated" valueField="amount_of_evaluated_members" argumentField="timestamp" />
+              <AreaSeries name="Unevaluated" valueField="amount_of_unevaluated_members" argumentField="timestamp" />
+              <Legend
+                rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
+                itemComponent={({ children }) => <Grid container spacing={1}>{children.map(child => <Grid item>{child}</Grid>)}</Grid>}
+                markerComponent={({ color }) => <svg fill={color} width={theme.spacing(1)} height={theme.spacing(1)}><circle r={theme.spacing(1) / 2} cx={theme.spacing(1) / 2} cy={theme.spacing(1) / 2} /></svg>}
+                labelComponent={({ text }) => <Typography variant="body2">{text}</Typography>}
+              />
+              <Stack stacks={[{ series: ["Evaluated", "Unevaluated"] }]} />
+            </Chart>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
+          <Typography variant="h5" className={classes.chartHeadingSpacing}>Fitness</Typography>
+          <Paper elevation={3}>
+            <Chart data={detailedMetricsHistory} height={theme.spacing(30)}>
+              <ValueScale factory={scaleLinear} />
+              <ArgumentScale factory={scaleTime} />
+              <ArgumentAxis showGrid />
+              <ValueAxis />
+              <LineSeries name="Minimum" valueField="fitness_minimum" argumentField="timestamp" />
+              <LineSeries name="Maximum" valueField="fitness_maximum" argumentField="timestamp" />
+              <LineSeries name="Median" valueField="fitness_median" argumentField="timestamp" />
+              <LineSeries name="Mean" valueField="fitness_mean" argumentField="timestamp" />
+              <LineSeries name="Std. dev." valueField="fitness_standard_deviation" argumentField="timestamp" />
+              <Legend
+                rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
+                itemComponent={({ children }) => <Grid container spacing={1}>{children.map(child => <Grid item>{child}</Grid>)}</Grid>}
+                markerComponent={({ color }) => <svg fill={color} width={theme.spacing(1)} height={theme.spacing(1)}><circle r={theme.spacing(1) / 2} cx={theme.spacing(1) / 2} cy={theme.spacing(1) / 2} /></svg>}
+                labelComponent={({ text }) => <Typography variant="body2">{text}</Typography>}
+              />
+            </Chart>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
+    <Container className={classes.lastContainer}>
+      <Typography variant="h5" className={classes.memberHeadingSpacing}>Members</Typography>
+      <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell className={classes.noWrap}>Individual</TableCell>
+              <TableCell className={classes.noWrap}>Fitness</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.entries(members).sort(([, memberA], [, memberB]) => memberB.fitness - memberA.fitness).map(([memberId, member]) =>
+              <TableRow key={populationId}>
+                <TableCell className={classes.noWrap}>
+                  <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>Open {memberId}</Link>
+                </TableCell>
+                <TableCell className={classes.noWrap}>{member.fitness ? member.fitness : "N/A"}</TableCell>
+              </TableRow>
+            )}
+            {Object.keys(members).length === 0 &&
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <Typography className={classes.noMembers} variant="body2">No members</Typography>
+                </TableCell>
+              </TableRow>
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
+    {/* <Container>
+      <Typography variant="h5" className={classes.memberHeadingSpacing}>Members</Typography>
+      <Paper elevation={3}>
+        <Grid container spacing={2}>
+          {Object.entries(members).sort(([, memberA], [, memberB]) => memberB.fitness - memberA.fitness).map(([memberId, member]) =>
+            <Grid item key={memberId} xs={12} sm={4} md={3} lg={2} xl={2}>
+              <Link className={classes.memberLink} to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>
+                <Grid container spacing={1} alignItems="center">
+                  <Grid item>
+                    <Grid container direction="column" alignItems="center">
+                      <Grid item>
+                        <Typography className={classes.memberIdText}>{memberId.replaceAll("-", "").slice(0, 16)}</Typography>
+                      </Grid>
+                      <Grid item>
+                        <Typography className={classes.memberIdText}>{memberId.replaceAll("-", "").slice(16, 32)}</Typography>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                  <Grid item>
+                    <Typography className={classes.memberFitnessText}>{member.fitness ? member.fitness : "N/A"}</Typography>
+                  </Grid>
+                </Grid>
+              </Link>
+            </Grid>
+          )}
+        </Grid>
+      </Paper>
+    </Container> */}
+    {/* <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
@@ -161,6 +299,6 @@ export default function PopulationList({ onConnectedChange }) {
     </Chart>
     <TextField variant="outlined" margin="normal" multiline fullWidth value={currentConfiguration} onChange={event => setCurrentConfiguration(event.target.value)} />
     <Button onClick={() => send("update_configuration", { configuration: currentConfiguration })}>Update</Button>
-    <Button onClick={() => setCurrentConfiguration(configuration)}>Reset</Button>
+    <Button onClick={() => setCurrentConfiguration(configuration)}>Reset</Button> */}
   </>;
 }

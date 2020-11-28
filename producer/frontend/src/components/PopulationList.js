@@ -27,6 +27,7 @@ import {
   Link,
 } from "react-router-dom";
 import CodeMirror from "@uiw/react-codemirror";
+import "./codemirror.css";
 
 import useWebSocket from "../hooks/useWebSocket";
 
@@ -50,6 +51,12 @@ const useStyles = makeStyles(theme => ({
   noPopulations: {
     textAlign: "center",
     fontStyle: "italic",
+  },
+  editor: {
+    fontFamily: "JetBrains Mono",
+  },
+  lastContainer: {
+    marginBottom: theme.spacing(4),
   },
 }));
 
@@ -85,12 +92,11 @@ export default function PopulationList({ onConnectedChange }) {
   }, [initialConfiguration]);
 
   useEffect(() => {
-    console.log("connected changed");
     onConnectedChange(connected);
   }, [connected]);
 
   if (error) {
-    return <>Error: {JSON.stringify(error)}</>;
+    return <Typography>Error: {JSON.stringify(error)}</Typography>;
   }
 
   return <>
@@ -104,7 +110,7 @@ export default function PopulationList({ onConnectedChange }) {
     <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
       <DialogTitle>Add population</DialogTitle>
       <DialogContent>
-        <CodeMirror value={configuration} onChanges={editor => setConfiguration(editor.getValue())} options={{ mode: "yaml" }} />
+        <CodeMirror className={classes.editor} value={configuration} onChanges={editor => setConfiguration(editor.getValue())} options={{ mode: "yaml" }} />
       </DialogContent>
       <DialogActions>
         <Button className={classes.leftButton} onClick={() => setConfiguration(initialConfiguration)}>Reset</Button>
@@ -112,7 +118,7 @@ export default function PopulationList({ onConnectedChange }) {
         <Button onClick={() => { setDialogOpen(false); send("add_population", { configuration: configuration }); }}>Add</Button>
       </DialogActions>
     </Dialog>
-    <Container>
+    <Container className={classes.lastContainer}>
       <Typography variant="h5" className={classes.headingSpacing}>Populations</Typography>
       <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
         <Table>

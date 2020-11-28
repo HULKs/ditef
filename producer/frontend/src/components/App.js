@@ -29,7 +29,7 @@ export default function App() {
   
   return <BrowserRouter>
     <Container className={classes.headingSpacing}>
-      <Grid container spacing={2} alignItems="center">
+      <Grid container spacing={2} alignItems="baseline">
         <Grid item>
           <Typography variant="h3">Sliding Genetic Algorithm</Typography>
         </Grid>
