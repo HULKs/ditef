@@ -11,6 +11,7 @@ import {
   BrowserRouter,
   Switch,
   Route,
+  Link,
 } from "react-router-dom";
 
 import PopulationList from "./PopulationList";
@@ -20,6 +21,10 @@ import Individual from "./Individual";
 const useStyles = makeStyles(theme => ({
   headingSpacing: {
     marginTop: theme.spacing(2),
+  },
+  headingLink: {
+    textDecoration: "inherit",
+    color: "inherit",
   },
 }));
 
@@ -31,7 +36,7 @@ export default function App() {
     <Container className={classes.headingSpacing}>
       <Grid container spacing={2} alignItems="baseline">
         <Grid item>
-          <Typography variant="h3">Sliding Genetic Algorithm</Typography>
+          <Typography variant="h3"><Link to="/" className={classes.headingLink}>Sliding Genetic Algorithm</Link></Typography>
         </Grid>
         <Grid item>
           {connected ? <CheckIcon /> : <WarningIcon />}
