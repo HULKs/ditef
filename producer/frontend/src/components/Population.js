@@ -209,9 +209,9 @@ export default function PopulationList({ onConnectedChange }) {
               <ValueAxis />
               <LineSeries name="Minimum" valueField="fitness_minimum" argumentField="timestamp" />
               <LineSeries name="Maximum" valueField="fitness_maximum" argumentField="timestamp" />
-              <LineSeries name="Median" valueField="fitness_median" argumentField="timestamp" />
-              <LineSeries name="Mean" valueField="fitness_mean" argumentField="timestamp" />
               <LineSeries name="Std. dev." valueField="fitness_standard_deviation" argumentField="timestamp" />
+              <LineSeries name="Mean" valueField="fitness_mean" argumentField="timestamp" />
+              <LineSeries name="Median" valueField="fitness_median" argumentField="timestamp" />
               <Legend
                 rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
                 itemComponent={({ children }) => <Grid container spacing={1}>{children.map(child => <Grid item>{child}</Grid>)}</Grid>}
