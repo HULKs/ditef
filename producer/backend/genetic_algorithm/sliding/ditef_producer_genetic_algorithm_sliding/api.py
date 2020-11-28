@@ -201,8 +201,6 @@ class Api:
                         self.yaml.load(message['configuration']),
                     )
                     population.configuration_event.notify()
-                # elif message['type'] == 'remove_population':
-                #     await request.app['algorithm'].remove_population(message['population_index'])
                 else:
                     print('Message not handled:', message)
         finally:
