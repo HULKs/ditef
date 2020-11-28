@@ -1,12 +1,16 @@
 import aiohttp.web
+import asyncio
 import copy
 import json
 import random
 import string
-import task_router.api_client
 import textwrap
 import typing
 import uuid
+
+import ditef_producer_shared.event
+import ditef_producer_shared.json
+import task_router.api_client
 
 
 class Individual:
@@ -40,6 +44,7 @@ class Individual:
         self.genealogy_children = []
         self.correct_characters: typing.Optional[int] = None
         self.length_difference: typing.Optional[int] = None
+        self.update_event = ditef_producer_shared.event.BroadcastEvent()
 
     @staticmethod
     def random(task_api_client: task_router.api_client.ApiClient, configuration: dict) -> 'Individual':
@@ -62,7 +67,7 @@ class Individual:
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual',task_api_client: task_router.api_client.ApiClient,  configuration: dict, creation_type: str) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: task_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -75,6 +80,7 @@ class Individual:
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
         parent.genealogy_children.append(individual_id)
+        parent.update_event.notify()
 
         return Individual.individuals[individual_id]
 
@@ -98,7 +104,9 @@ class Individual:
             parent_b.id,
         ]
         parent_a.genealogy_children.append(individual_id)
+        parent_a.update_event.notify()
         parent_b.genealogy_children.append(individual_id)
+        parent_b.update_event.notify()
 
         return Individual.individuals[individual_id]
 
@@ -107,7 +115,8 @@ class Individual:
             if random.choice([True] * 9 + [False]):
                 # change character
                 i = random.randrange(len(self.genome))
-                self.genome[i] = random.choice(self.configuration['character_pool'])
+                self.genome[i] = random.choice(
+                    self.configuration['character_pool'])
             else:
                 if random.choice([True, False]) and len(self.genome) > 0:
                     # remove one character
@@ -116,7 +125,9 @@ class Individual:
                 else:
                     # insert new character
                     i = random.randrange(len(self.genome))
-                    self.genome.insert(i, random.choice(self.configuration['character_pool']))
+                    self.genome.insert(i, random.choice(
+                        self.configuration['character_pool']))
+        self.update_event.notify()
 
     async def evaluate(self):
         result = await self.task_api_client.run(
@@ -128,60 +139,81 @@ class Individual:
         )
         self.correct_characters = result['correct_characters']
         self.length_difference = result['length_difference']
+        self.update_event.notify()
 
-    def fitness(self) -> float:
+    def fitness(self) -> typing.Optional[float]:
         try:
             return self.correct_characters - abs(self.length_difference) * 2
         except TypeError:
             return None
 
-    def ui_url(self) -> str:
-        return f'/genetic_individual_string/ui?id={self.id}'
+    def api_url(self) -> str:
+        return f'/genetic_individual_string/api/{self.id}'
+
+    async def api_write_update_to_websocket(self, websocket: aiohttp.web.WebSocketResponse):
+        await websocket.send_json(
+            data={
+                'genome': self.genome,
+                'fitness': self.fitness(),
+                'creation_type': self.creation_type,
+                'genealogy_parents': {
+                    parent_id: {
+                        'fitness': Individual.individuals[parent_id].fitness(),
+                        'url': Individual.individuals[parent_id].api_url(),
+                    }
+                    for parent_id in self.genealogy_parents
+                },
+                'genealogy_children': {
+                    child_id: {
+                        'fitness': Individual.individuals[child_id].fitness(),
+                        'url': Individual.individuals[child_id].api_url(),
+                    }
+                    for child_id in self.genealogy_children
+                },
+            },
+            dumps=ditef_producer_shared.json.json_formatter_compressed,
+        )
+
+    async def subscribe_to_update(self, websocket: aiohttp.web.WebSocketResponse):
+        with self.update_event.subscribe() as subscription:
+            while True:
+                await self.api_write_update_to_websocket(websocket)
+                await subscription.wait()
 
     @staticmethod
-    def ui_add_routes(app: aiohttp.web.Application):
+    def api_add_routes(app: aiohttp.web.Application):
         app.add_routes([
             aiohttp.web.get(
-                '/genetic_individual_string/ui',
-                Individual.ui_handle_index,
+                r'/genetic_individual_string/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
+                Individual.api_handle_websocket,
             ),
         ])
 
     @staticmethod
-    async def ui_handle_index(request: aiohttp.web.Request):
-        individual_id = request.query['id']
-        individual = Individual.individuals[individual_id]
-        parents_list = ''
-        for parent_id in individual.genealogy_parents:
-            parent = Individual.individuals[parent_id]
-            parents_list += f'<p><a href="{parent.ui_url()}">{parent.fitness()}</a></p>'
-        children_list = ''
-        for child_id in individual.genealogy_children:
-            child = Individual.individuals[child_id]
-            children_list += f'<p><a href="{child.ui_url()}">{child.fitness()}</a></p>'
-        raise aiohttp.web.HTTPOk(
-            text=textwrap.dedent(f'''
-                <!DOCTYPE html>
-                <html>
-                    <head>
-                        <title>genetic_individual_string</title>
-                    </head>
-                    <body>
-                        <h1>Genetic Individual (String)</h1>
-                        <h2>ID</h2>
-                        <p>{individual_id}</p>
-                        <h2>Genome</h2>
-                        <p>{json.dumps("".join(individual.genome))} (Length: {len(individual.genome)})</p>
-                        <h2>Fitness</h2>
-                        <p>{json.dumps(individual.fitness())}</p>
-                        <h2>Creation Type</h2>
-                        {individual.creation_type}
-                        <h2>Parents</h2>
-                        {parents_list}
-                        <h2>Children</h2>
-                        {children_list}
-                    </body>
-                </html>
-            '''),
-            content_type='text/html',
+    async def api_handle_websocket(request: aiohttp.web.Request):
+        websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
+        await websocket.prepare(request)
+
+        individual_id = request.match_info['individual_id']
+        individual: Individual = Individual.individuals[individual_id]
+
+        update_subscription_task = asyncio.create_task(
+            individual.subscribe_to_update(
+                websocket,
+            ),
         )
+
+        await individual.api_write_update_to_websocket(websocket)
+
+        try:
+            async for message in websocket:
+                assert message.type == aiohttp.web.WSMsgType.TEXT
+                print('Message not handled:', message)
+        finally:
+            update_subscription_task.cancel()
+            try:
+                await update_subscription_task
+            except asyncio.CancelledError:
+                pass
+
+        return websocket
