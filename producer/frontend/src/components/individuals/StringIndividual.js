@@ -61,7 +61,7 @@ export default function StringIndividual({ url, onConnectedChange }) {
   const [genealogyChildren, setGeneaglogyChildren] = useState();
   const [connected, error,] = useWebSocket(
     true,
-    `ws://localhost:8081${url}`,
+    `ws://${window.location.host}${url}`,
     (type, payload) => {
       switch (type) {
         case "genome": {

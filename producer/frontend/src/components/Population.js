@@ -90,7 +90,7 @@ export default function PopulationList({ onConnectedChange }) {
   const [members, setMembers] = useState();
   const [connected, error, send] = useWebSocket(
     typeof populationId === "string",
-    `ws://localhost:8081/genetic_algorithm_sliding/api/population/${populationId}/ws/`,
+    `ws://${window.location.host}/genetic_algorithm_sliding/api/population/${populationId}/ws/`,
     (type, payload) => {
       switch (type) {
         case "configuration": {
