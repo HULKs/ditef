@@ -5,7 +5,6 @@ import "fontsource-roboto";
 import "fontsource-roboto/300.css";
 import "fontsource-roboto/500.css";
 import "fontsource-jetbrains-mono";
-// import "fontsource-jetbrains-mono/500.css";
 import App from "./components/App";
 
 ReactDOM.render(
