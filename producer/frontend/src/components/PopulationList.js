@@ -88,7 +88,7 @@ export default function PopulationList({ onConnectedChange }) {
 
   useEffect(() => {
     onConnectedChange(connected);
-  }, [connected]);
+  }, [onConnectedChange, connected]);
 
   if (error) {
     return <Typography>Error: {JSON.stringify(error)}</Typography>;

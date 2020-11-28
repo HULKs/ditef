@@ -84,13 +84,17 @@ export default function BitvectorIndividual({ url, onConnectedChange }) {
           setGeneaglogyChildren(payload);
           break;
         }
+        default: {
+          console.warn(`Message type ${type} not implemented.`);
+          break;
+        }
       }
     },
   );
 
   useEffect(() => {
     onConnectedChange(connected);
-  }, [connected]);
+  }, [onConnectedChange, connected]);
 
   if (error) {
     return <>Error: {JSON.stringify(error)}</>;

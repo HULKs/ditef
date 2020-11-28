@@ -48,9 +48,6 @@ import "./codemirror.css";
 import useWebSocket from "../hooks/useWebSocket";
 
 const useStyles = makeStyles(theme => ({
-  noWrap: {
-    whiteSpace: "nowrap",
-  },
   chartHeadingSpacing: {
     marginTop: theme.spacing(0.5),
     marginBottom: theme.spacing(1),
@@ -128,7 +125,7 @@ export default function PopulationList({ onConnectedChange }) {
 
   useEffect(() => {
     onConnectedChange(connected);
-  }, [connected]);
+  }, [onConnectedChange, connected]);
 
   if (error) {
     return <>Error: {JSON.stringify(error)}</>;
