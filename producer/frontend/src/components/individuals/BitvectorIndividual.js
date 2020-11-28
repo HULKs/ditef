@@ -1,55 +1,21 @@
 import React, { useState, useEffect } from "react";
 import {
-  Button,
   Container,
   Grid,
   Paper,
-  Chip,
-  Avatar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Slider,
-  Fab,
 } from "@material-ui/core";
 import {
   makeStyles,
-  useTheme,
 } from "@material-ui/core/styles";
 import green from "@material-ui/core/colors/green";
 import red from "@material-ui/core/colors/red";
-import classNames from "clsx";
-import {
-  ArgumentScale,
-  Stack,
-  ValueScale,
-} from '@devexpress/dx-react-chart';
-import {
-  Chart,
-  ArgumentAxis,
-  ValueAxis,
-  LineSeries,
-  SplineSeries,
-  AreaSeries,
-  Title,
-  Legend,
-} from '@devexpress/dx-react-chart-material-ui';
-import {
-  useParams,
-  useLocation,
-} from "react-router-dom";
-import { scaleLinear, scaleTime } from "d3-scale";
-import { timeSecond } from "d3-time";
 import {
   Link,
 } from "react-router-dom";
@@ -86,14 +52,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function BitvectorIndividual({ individualId, url, onConnectedChange }) {
+export default function BitvectorIndividual({ url, onConnectedChange }) {
   const classes = useStyles();
   const [genome, setGenome] = useState();
   const [fitness, setFitness] = useState();
   const [creationType, setCreationType] = useState();
   const [genealogyParents, setGenealogyParents] = useState();
   const [genealogyChildren, setGeneaglogyChildren] = useState();
-  const [connected, error, send] = useWebSocket(
+  const [connected, error,] = useWebSocket(
     true,
     `ws://localhost:8081${url}`,
     (type, payload) => {

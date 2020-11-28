@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Button,
   Container,
-  Card,
-  CardContent,
   Paper,
   Table,
   TableBody,
@@ -11,14 +9,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
-  Slider,
   Fab,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";

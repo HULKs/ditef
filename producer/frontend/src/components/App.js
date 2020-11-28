@@ -31,7 +31,7 @@ const useStyles = makeStyles(theme => ({
 export default function App() {
   const classes = useStyles();
   const [connected, setConnected] = useState(false);
-  
+
   return <BrowserRouter>
     <Container className={classes.headingSpacing}>
       <Grid container spacing={2} alignItems="baseline">

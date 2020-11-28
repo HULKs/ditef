@@ -4,27 +4,21 @@ import {
   Container,
   Grid,
   Paper,
-  Chip,
-  Avatar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
-  Slider,
   Fab,
 } from "@material-ui/core";
 import {
   makeStyles,
-  withStyles,
   useTheme,
 } from "@material-ui/core/styles";
 import EditIcon from "@material-ui/icons/Edit";
@@ -38,20 +32,16 @@ import {
   ArgumentAxis,
   ValueAxis,
   LineSeries,
-  SplineSeries,
   AreaSeries,
-  Title,
   Legend,
 } from '@devexpress/dx-react-chart-material-ui';
 import {
   useParams,
 } from "react-router-dom";
 import { scaleLinear, scaleTime } from "d3-scale";
-import { timeSecond } from "d3-time";
 import {
   Link,
 } from "react-router-dom";
-import classNames from "clsx";
 import CodeMirror from "@uiw/react-codemirror";
 import "./codemirror.css";
 
