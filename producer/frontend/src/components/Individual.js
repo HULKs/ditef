@@ -28,7 +28,7 @@ export default function Individual({ onConnectedChange }) {
       return <BitvectorIndividual individualId={individualId} url={url} onConnectedChange={onConnectedChange} />;
     }
     default: {
-      return <>Unknown individual type "{type}"</>;
+      return <Typography>Unknown individual type &quot;{type}&quot;</Typography>;
     }
   }
 }
