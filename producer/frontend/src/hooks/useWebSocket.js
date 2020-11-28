@@ -39,7 +39,7 @@ export default function useWebSocket(enable, url, callback) {
     } else {
       setConnected(false);
     }
-  }, [enable, url]);
+  }, [enable, url, callback]);
 
   return [
     connected,
