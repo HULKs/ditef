@@ -14,12 +14,20 @@ import {
   TableRow,
   TextField,
   Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Slider,
+  Fab,
 } from "@material-ui/core";
 import {
   makeStyles,
   withStyles,
   useTheme,
 } from "@material-ui/core/styles";
+import EditIcon from "@material-ui/icons/Edit";
 import {
   ArgumentScale,
   Stack,
@@ -44,6 +52,8 @@ import {
   Link,
 } from "react-router-dom";
 import classNames from "clsx";
+import CodeMirror from "@uiw/react-codemirror";
+import "./codemirror.css";
 
 import useWebSocket from "../hooks/useWebSocket";
 
@@ -120,6 +130,7 @@ export default function PopulationList({ onConnectedChange }) {
     },
   );
   const [currentConfiguration, setCurrentConfiguration] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     setCurrentConfiguration(configuration);
@@ -147,6 +158,24 @@ export default function PopulationList({ onConnectedChange }) {
     }));
 
   return <>
+    <Fab
+      color="primary"
+      className={classes.floatingActionButton}
+      onClick={() => setDialogOpen(true)}
+    >
+      <EditIcon />
+    </Fab>
+    <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
+      <DialogTitle>Update configuration</DialogTitle>
+      <DialogContent>
+        <CodeMirror className={classes.editor} value={currentConfiguration} onChanges={editor => setCurrentConfiguration(editor.getValue())} options={{ mode: "yaml" }} />
+      </DialogContent>
+      <DialogActions>
+        <Button className={classes.leftButton} onClick={() => setCurrentConfiguration(configuration)}>Reset</Button>
+        <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+        <Button onClick={() => { setDialogOpen(false); send("update_configuration", { configuration: currentConfiguration }); }}>Update</Button>
+      </DialogActions>
+    </Dialog>
     <Container>
       <Grid container spacing={2}>
         <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
@@ -224,81 +253,5 @@ export default function PopulationList({ onConnectedChange }) {
         </Table>
       </TableContainer>
     </Container>
-    {/* <Container>
-      <Typography variant="h5" className={classes.memberHeadingSpacing}>Members</Typography>
-      <Paper elevation={3}>
-        <Grid container spacing={2}>
-          {Object.entries(members).sort(([, memberA], [, memberB]) => memberB.fitness - memberA.fitness).map(([memberId, member]) =>
-            <Grid item key={memberId} xs={12} sm={4} md={3} lg={2} xl={2}>
-              <Link className={classes.memberLink} to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>
-                <Grid container spacing={1} alignItems="center">
-                  <Grid item>
-                    <Grid container direction="column" alignItems="center">
-                      <Grid item>
-                        <Typography className={classes.memberIdText}>{memberId.replaceAll("-", "").slice(0, 16)}</Typography>
-                      </Grid>
-                      <Grid item>
-                        <Typography className={classes.memberIdText}>{memberId.replaceAll("-", "").slice(16, 32)}</Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item>
-                    <Typography className={classes.memberFitnessText}>{member.fitness ? member.fitness : "N/A"}</Typography>
-                  </Grid>
-                </Grid>
-              </Link>
-            </Grid>
-          )}
-        </Grid>
-      </Paper>
-    </Container> */}
-    {/* <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Individual</TableCell>
-            <TableCell>Fitness</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {Object.entries(members).sort(([memberIdA, memberA], [memberIdB, memberB]) => memberB.fitness - memberA.fitness).map(([memberId, member]) =>
-            <TableRow key={memberId}>
-              <TableCell>
-                <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>Open {memberId}</Link>
-              </TableCell>
-              <TableCell>{member.fitness ? member.fitness : "N/A"}</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    <Chart data={detailedMetricsHistory}>
-      <ValueScale factory={scaleLinear} />
-      <ArgumentScale factory={scaleTime} />
-      <ArgumentAxis showGrid />
-      <ValueAxis />
-      <LineSeries name="Total" valueField="amount_of_members" argumentField="timestamp" />
-      <AreaSeries name="Evaluated" valueField="amount_of_evaluated_members" argumentField="timestamp" />
-      <AreaSeries name="Unevaluated" valueField="amount_of_unevaluated_members" argumentField="timestamp" />
-      <Legend />
-      <Title text="Amount of members" />
-      <Stack stacks={[{ series: ["Evaluated", "Unevaluated"] }]} />
-    </Chart>
-    <Chart data={detailedMetricsHistory}>
-      <ValueScale factory={scaleLinear} />
-      <ArgumentScale factory={scaleTime} />
-      <ArgumentAxis showGrid />
-      <ValueAxis />
-      <LineSeries name="Minimum fitness" valueField="fitness_minimum" argumentField="timestamp" />
-      <LineSeries name="Maximum fitness" valueField="fitness_maximum" argumentField="timestamp" />
-      <LineSeries name="Median fitness" valueField="fitness_median" argumentField="timestamp" />
-      <LineSeries name="Mean fitness" valueField="fitness_mean" argumentField="timestamp" />
-      <LineSeries name="Fitness standard deviation" valueField="fitness_standard_deviation" argumentField="timestamp" />
-      <Legend />
-      <Title text="Fitness" />
-    </Chart>
-    <TextField variant="outlined" margin="normal" multiline fullWidth value={currentConfiguration} onChange={event => setCurrentConfiguration(event.target.value)} />
-    <Button onClick={() => send("update_configuration", { configuration: currentConfiguration })}>Update</Button>
-    <Button onClick={() => setCurrentConfiguration(configuration)}>Reset</Button> */}
   </>;
 }

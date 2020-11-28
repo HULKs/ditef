@@ -22,7 +22,7 @@ import {
   Fab,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import AddIcon from '@material-ui/icons/Add';
+import AddIcon from "@material-ui/icons/Add";
 import {
   Link,
 } from "react-router-dom";
