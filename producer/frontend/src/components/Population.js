@@ -226,7 +226,7 @@ export default function PopulationList({ onConnectedChange }) {
     <Container className={classes.lastContainer}>
       <Typography variant="h5" className={classes.memberHeadingSpacing}>Members</Typography>
       <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
-        <Table>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell className={classes.noWrap}>Individual</TableCell>

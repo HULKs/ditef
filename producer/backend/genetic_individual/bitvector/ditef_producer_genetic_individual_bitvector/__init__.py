@@ -72,6 +72,7 @@ class Individual:
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
         parent.genealogy_children.append(individual_id)
+        parent.update_event.notify()
 
         return Individual.individuals[individual_id]
 
@@ -95,7 +96,9 @@ class Individual:
             parent_b.id,
         ]
         parent_a.genealogy_children.append(individual_id)
+        parent_a.update_event.notify()
         parent_b.genealogy_children.append(individual_id)
+        parent_b.update_event.notify()
 
         return Individual.individuals[individual_id]
 
@@ -125,8 +128,20 @@ class Individual:
                 'genome': self.genome,
                 'fitness': self.fitness(),
                 'creation_type': self.creation_type,
-                'genealogy_parents': self.genealogy_parents,
-                'genealogy_children': self.genealogy_children,
+                'genealogy_parents': {
+                    parent_id: {
+                        'fitness': Individual.individuals[parent_id].fitness(),
+                        'url': Individual.individuals[parent_id].api_url(),
+                    }
+                    for parent_id in self.genealogy_parents
+                },
+                'genealogy_children': {
+                    child_id: {
+                        'fitness': Individual.individuals[child_id].fitness(),
+                        'url': Individual.individuals[child_id].api_url(),
+                    }
+                    for child_id in self.genealogy_children
+                },
             },
             dumps=ditef_producer_shared.json.json_formatter_compressed,
         )

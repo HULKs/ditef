@@ -39,18 +39,11 @@ import {
 
 import BitvectorIndividual from "./individuals/BitvectorIndividual";
 
-// const useStyles = makeStyles({
-//   operationsCell: {
-//     whiteSpace: "nowrap",
-//   },
-// });
-
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 export default function Individual({ onConnectedChange }) {
-  // const classes = useStyles();
   const { individualId } = useParams();
   const query = useQuery();
   const type = query.get("type");
