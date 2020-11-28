@@ -1,5 +1,8 @@
 import React from "react";
 import {
+  Typography,
+} from "@material-ui/core";
+import {
   useParams,
   useLocation,
 } from "react-router-dom";
@@ -17,7 +20,7 @@ export default function Individual({ onConnectedChange }) {
   const url = query.get("url");
 
   if (!type || !url) {
-    return <>Loading...</>;
+    return <Typography>Loading...</Typography>;
   }
 
   switch (type) {

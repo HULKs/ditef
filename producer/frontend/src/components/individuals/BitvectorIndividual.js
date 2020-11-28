@@ -100,8 +100,8 @@ export default function BitvectorIndividual({ url, onConnectedChange }) {
     return <>Error: {JSON.stringify(error)}</>;
   }
 
-  if (!connected || error) {
-    return <>N/A</>;
+  if (!connected) {
+    return <Typography>Loading...</Typography>;
   }
 
   return <>
