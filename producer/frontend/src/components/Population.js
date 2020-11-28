@@ -224,7 +224,7 @@ export default function PopulationList({ onConnectedChange }) {
             {Object.entries(members).sort(([, memberA], [, memberB]) => memberB.fitness - memberA.fitness).map(([memberId, member]) =>
               <TableRow key={populationId}>
                 <TableCell className={classes.noWrap}>
-                  <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>Open {memberId}</Link>
+                  <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>{memberId}</Link>
                 </TableCell>
                 <TableCell className={classes.noWrap}>{member.fitness ? member.fitness : "N/A"}</TableCell>
               </TableRow>

@@ -135,7 +135,7 @@ export default function PopulationList({ onConnectedChange }) {
             {currentMetrics && currentMetrics.map((populationMetrics, populationId) =>
               <TableRow key={populationId}>
                 <TableCell className={classes.noWrap}>
-                  <Link to={`/population/${populationId}`}>Open {populationId}</Link>
+                  <Link to={`/population/${populationId}`}>{populationId}</Link>
                 </TableCell>
                 <TableCell className={classes.noWrap}>{populationMetrics.amount_of_members}</TableCell>
                 <TableCell className={classes.noWrap}>{populationMetrics.amount_of_evaluated_members}</TableCell>

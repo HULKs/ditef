@@ -137,7 +137,7 @@ export default function BitvectorIndividual({ url, onConnectedChange }) {
                 {genealogyParents && Object.entries(genealogyParents).sort(([, parentA], [, parentB]) => parentB.fitness - parentA.fitness).map(([parentId, parent]) =>
                   <TableRow key={parentId}>
                     <TableCell className={classes.noWrap}>
-                      <Link to={`/individual/${parentId}?type=ditef_producer_genetic_individual_bitvector&url=${encodeURIComponent(parent.url)}`}>Open {parentId}</Link>
+                      <Link to={`/individual/${parentId}?type=ditef_producer_genetic_individual_bitvector&url=${encodeURIComponent(parent.url)}`}>{parentId}</Link>
                     </TableCell>
                     <TableCell className={classes.noWrap}>{parent.fitness ? parent.fitness : "N/A"}</TableCell>
                   </TableRow>
@@ -167,7 +167,7 @@ export default function BitvectorIndividual({ url, onConnectedChange }) {
                 {genealogyChildren && Object.entries(genealogyChildren).sort(([, childA], [, childB]) => childB.fitness - childA.fitness).map(([childId, child]) =>
                   <TableRow key={childId}>
                     <TableCell className={classes.noWrap}>
-                      <Link to={`/individual/${childId}?type=ditef_producer_genetic_individual_bitvector&url=${encodeURIComponent(child.url)}`}>Open {childId}</Link>
+                      <Link to={`/individual/${childId}?type=ditef_producer_genetic_individual_bitvector&url=${encodeURIComponent(child.url)}`}>{childId}</Link>
                     </TableCell>
                     <TableCell className={classes.noWrap}>{child.fitness ? child.fitness : "N/A"}</TableCell>
                   </TableRow>
