@@ -5,7 +5,7 @@ import importlib
 import pathlib
 import urllib
 
-import task_router.api_client
+import ditef_router.api_client
 
 from .api import Api
 from .algorithm import Algorithm
@@ -33,7 +33,7 @@ async def cancel_populations(app: aiohttp.web.Application):
 
 
 async def async_main(**arguments):
-    async with task_router.api_client.ApiClient(arguments['router_url'], arguments['connect_timeout'], arguments['initial_retry_timeout'], arguments['maximum_retry_timeout']) as task_api_client:
+    async with ditef_router.api_client.ApiClient(arguments['router_url'], arguments['connect_timeout'], arguments['initial_retry_timeout'], arguments['maximum_retry_timeout']) as task_api_client:
         app = aiohttp.web.Application()
         app['arguments'] = arguments
 

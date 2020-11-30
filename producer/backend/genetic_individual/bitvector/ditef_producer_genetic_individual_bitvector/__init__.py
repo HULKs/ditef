@@ -9,7 +9,7 @@ import uuid
 
 import ditef_producer_shared.event
 import ditef_producer_shared.json
-import task_router.api_client
+import ditef_router.api_client
 
 
 class Individual:
@@ -29,7 +29,7 @@ class Individual:
 
     individuals = {}
 
-    def __init__(self, task_api_client: task_router.api_client.ApiClient, configuration: dict, id: str, genome: typing.List[bool], creation_type: str):
+    def __init__(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict, id: str, genome: typing.List[bool], creation_type: str):
         self.task_api_client = task_api_client
         self.configuration = configuration
         self.id = id
@@ -41,7 +41,7 @@ class Individual:
         self.update_event = ditef_producer_shared.event.BroadcastEvent()
 
     @staticmethod
-    def random(task_api_client: task_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         '''Generates a new random individual'''
 
         individual_id = str(uuid.uuid4())
@@ -59,7 +59,7 @@ class Individual:
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: task_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -77,7 +77,7 @@ class Individual:
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: task_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())

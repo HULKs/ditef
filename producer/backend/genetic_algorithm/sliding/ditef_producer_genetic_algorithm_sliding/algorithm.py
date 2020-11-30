@@ -1,14 +1,14 @@
 import asyncio
 
 import ditef_producer_shared.event
-import task_router.api_client
+import ditef_router.api_client
 
 from .population import Population
 
 
 class Algorithm:
 
-    def __init__(self, individual_type: str, pending_individuals: int, task_api_client: task_router.api_client.ApiClient):
+    def __init__(self, individual_type: str, pending_individuals: int, task_api_client: ditef_router.api_client.ApiClient):
         self.individual_type = individual_type
         self.populations = []
         self.pending_individuals = pending_individuals

@@ -5,7 +5,7 @@ import pandas
 import random
 
 import ditef_producer_shared.event
-import task_router.api_client
+import ditef_router.api_client
 import weakref
 
 
@@ -53,7 +53,7 @@ class Population:
 
     populations = []
 
-    def __init__(self, individual_type: str, task_api_client: task_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict):
+    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict):
         self.individual_type = individual_type
         self.task_api_client = task_api_client
         self.algorithm_metric_event = algorithm_event
