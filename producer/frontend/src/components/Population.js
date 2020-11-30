@@ -179,7 +179,7 @@ export default function Population({ onConnectedChange }) {
               <AreaSeries name="Unevaluated" valueField="amount_of_unevaluated_members" argumentField="timestamp" />
               <Legend
                 rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
-                itemComponent={({ children }) => <Grid container spacing={1}>{children.map(child => <Grid item>{child}</Grid>)}</Grid>}
+                itemComponent={({ children }) => <Grid container spacing={1}>{children.map((child, index) => <Grid item key={index}>{child}</Grid>)}</Grid>}
                 markerComponent={({ color }) => <svg fill={color} width={theme.spacing(1)} height={theme.spacing(1)}><circle r={theme.spacing(1) / 2} cx={theme.spacing(1) / 2} cy={theme.spacing(1) / 2} /></svg>}
                 labelComponent={({ text }) => <Typography variant="body2">{text}</Typography>}
               />
@@ -202,7 +202,7 @@ export default function Population({ onConnectedChange }) {
               <LineSeries name="Median" valueField="fitness_median" argumentField="timestamp" />
               <Legend
                 rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
-                itemComponent={({ children }) => <Grid container spacing={1}>{children.map(child => <Grid item>{child}</Grid>)}</Grid>}
+                itemComponent={({ children }) => <Grid container spacing={1}>{children.map((child, index) => <Grid item key={index}>{child}</Grid>)}</Grid>}
                 markerComponent={({ color }) => <svg fill={color} width={theme.spacing(1)} height={theme.spacing(1)}><circle r={theme.spacing(1) / 2} cx={theme.spacing(1) / 2} cy={theme.spacing(1) / 2} /></svg>}
                 labelComponent={({ text }) => <Typography variant="body2">{text}</Typography>}
               />
