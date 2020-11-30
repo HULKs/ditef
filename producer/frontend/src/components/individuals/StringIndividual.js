@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Grid,
@@ -59,37 +59,38 @@ export default function StringIndividual({ url, onConnectedChange }) {
   const [creationType, setCreationType] = useState();
   const [genealogyParents, setGenealogyParents] = useState();
   const [genealogyChildren, setGeneaglogyChildren] = useState();
+  const onWebSocketMessage = useCallback((type, payload) => {
+    switch (type) {
+      case "genome": {
+        setGenome(payload);
+        break;
+      }
+      case "fitness": {
+        setFitness(payload);
+        break;
+      }
+      case "creation_type": {
+        setCreationType(payload);
+        break;
+      }
+      case "genealogy_parents": {
+        setGenealogyParents(payload);
+        break;
+      }
+      case "genealogy_children": {
+        setGeneaglogyChildren(payload);
+        break;
+      }
+      default: {
+        console.warn(`Message type ${type} not implemented.`);
+        break;
+      }
+    }
+  }, []);
   const [connected, error,] = useWebSocket(
     true,
     `ws://localhost:8081${url}`,
-    (type, payload) => {
-      switch (type) {
-        case "genome": {
-          setGenome(payload);
-          break;
-        }
-        case "fitness": {
-          setFitness(payload);
-          break;
-        }
-        case "creation_type": {
-          setCreationType(payload);
-          break;
-        }
-        case "genealogy_parents": {
-          setGenealogyParents(payload);
-          break;
-        }
-        case "genealogy_children": {
-          setGeneaglogyChildren(payload);
-          break;
-        }
-        default: {
-          console.warn(`Message type ${type} not implemented.`);
-          break;
-        }
-      }
-    },
+    onWebSocketMessage,
   );
 
   useEffect(() => {

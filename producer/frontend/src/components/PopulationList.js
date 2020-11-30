@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Container,
@@ -59,25 +59,26 @@ export default function PopulationList({ onConnectedChange }) {
   const classes = useStyles();
   const [initialConfiguration, setInitialConfiguration] = useState();
   const [currentMetrics, setCurrentMetrics] = useState();
+  const onWebSocketMessage = useCallback((type, payload) => {
+    switch (type) {
+      case "initial_configuration": {
+        setInitialConfiguration(payload);
+        break;
+      }
+      case "current_metrics": {
+        setCurrentMetrics(payload);
+        break;
+      }
+      default: {
+        console.warn(`Message type ${type} not implemented.`);
+        break;
+      }
+    }
+  }, []);
   const [connected, error, send] = useWebSocket(
     true,
     `ws://localhost:8081/genetic_algorithm_sliding/api/populations/ws/`,
-    (type, payload) => {
-      switch (type) {
-        case 'initial_configuration': {
-          setInitialConfiguration(payload);
-          break;
-        }
-        case 'current_metrics': {
-          setCurrentMetrics(payload);
-          break;
-        }
-        default: {
-          console.warn(`Message type ${type} not implemented.`);
-          break;
-        }
-      }
-    },
+    onWebSocketMessage,
   );
   const [configuration, setConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);

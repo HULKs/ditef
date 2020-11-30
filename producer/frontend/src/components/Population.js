@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Container,
@@ -80,7 +80,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function PopulationList({ onConnectedChange }) {
+export default function Population({ onConnectedChange }) {
   const classes = useStyles();
   const theme = useTheme();
   const { populationId } = useParams();
@@ -88,33 +88,34 @@ export default function PopulationList({ onConnectedChange }) {
   const [configuration, setConfiguration] = useState();
   const [individualType, setIndividualType] = useState();
   const [members, setMembers] = useState();
+  const onWebSocketMessage = useCallback((type, payload) => {
+    switch (type) {
+      case "configuration": {
+        setConfiguration(payload);
+        break;
+      }
+      case "detailed_metrics": {
+        setCurrentMetrics(payload);
+        break;
+      }
+      case "individual_type": {
+        setIndividualType(payload);
+        break;
+      }
+      case "members": {
+        setMembers(payload);
+        break;
+      }
+      default: {
+        console.warn(`Message type ${type} not implemented.`);
+        break;
+      }
+    }
+  }, []);
   const [connected, error, send] = useWebSocket(
     typeof populationId === "string",
     `ws://localhost:8081/genetic_algorithm_sliding/api/population/${populationId}/ws/`,
-    (type, payload) => {
-      switch (type) {
-        case "configuration": {
-          setConfiguration(payload);
-          break;
-        }
-        case "detailed_metrics": {
-          setCurrentMetrics(payload);
-          break;
-        }
-        case "individual_type": {
-          setIndividualType(payload);
-          break;
-        }
-        case "members": {
-          setMembers(payload);
-          break;
-        }
-        default: {
-          console.warn(`Message type ${type} not implemented.`);
-          break;
-        }
-      }
-    },
+    onWebSocketMessage,
   );
   const [currentConfiguration, setCurrentConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
