@@ -223,7 +223,7 @@ export default function Population({ onConnectedChange }) {
           </TableHead>
           <TableBody>
             {Object.entries(members).sort(([, memberA], [, memberB]) => memberB.fitness - memberA.fitness).map(([memberId, member]) =>
-              <TableRow key={populationId}>
+              <TableRow key={memberId}>
                 <TableCell className={classes.noWrap}>
                   <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>{memberId}</Link>
                 </TableCell>
