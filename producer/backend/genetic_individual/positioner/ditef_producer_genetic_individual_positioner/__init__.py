@@ -1,4 +1,5 @@
 import aiohttp.web
+import asyncio
 import copy
 import random
 import task_router.api_client
@@ -389,7 +390,7 @@ class Individual:
     async def evaluate(self):
         self.update_computational_cost()
         self.evaluation_result = await self.task_api_client.run(
-            'neuralnet_evaluator',
+            'ditef_worker_genetic_individual_neuralnet',
             {
                 'genome': self.genome,
                 'configuration': self.configuration
