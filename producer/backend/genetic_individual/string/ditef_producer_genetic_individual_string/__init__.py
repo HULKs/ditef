@@ -184,14 +184,14 @@ class Individual:
                 seconds_spent_in_wait = (
                     datetime.datetime.now() - last_websocket_message
                 ).total_seconds()
-                if seconds_spent_in_wait < Individual.maximum_websocket_interval:
-                    await asyncio.sleep(Individual.maximum_websocket_interval - seconds_spent_in_wait)
+                if seconds_spent_in_wait < Individual.minimum_websocket_interval:
+                    await asyncio.sleep(Individual.minimum_websocket_interval - seconds_spent_in_wait)
 
-    maximum_websocket_interval = 0
+    minimum_websocket_interval = 0
 
     @staticmethod
-    def api_add_routes(app: aiohttp.web.Application, maximum_websocket_interval: int):
-        Individual.maximum_websocket_interval = maximum_websocket_interval
+    def api_add_routes(app: aiohttp.web.Application, minimum_websocket_interval: int):
+        Individual.minimum_websocket_interval = minimum_websocket_interval
         app.add_routes([
             aiohttp.web.get(
                 r'/genetic_individual_string/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',

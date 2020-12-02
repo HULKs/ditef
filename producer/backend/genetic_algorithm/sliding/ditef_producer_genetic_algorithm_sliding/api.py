@@ -67,8 +67,8 @@ class Api:
                 seconds_spent_in_wait = (
                     datetime.datetime.now() - last_websocket_message
                 ).total_seconds()
-                if seconds_spent_in_wait < algorithm.maximum_websocket_interval:
-                    await asyncio.sleep(algorithm.maximum_websocket_interval - seconds_spent_in_wait)
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def handle_populations_websocket(self, request: aiohttp.web.Request):
         websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
@@ -129,8 +129,8 @@ class Api:
                 seconds_spent_in_wait = (
                     datetime.datetime.now() - last_websocket_message
                 ).total_seconds()
-                if seconds_spent_in_wait < algorithm.maximum_websocket_interval:
-                    await asyncio.sleep(algorithm.maximum_websocket_interval - seconds_spent_in_wait)
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def subscribe_to_population_metrics(self, algorithm: Algorithm, population: Population, websocket: aiohttp.web.WebSocketResponse):
         with population.metric_event.subscribe() as subscription:
@@ -151,8 +151,8 @@ class Api:
                 seconds_spent_in_wait = (
                     datetime.datetime.now() - last_websocket_message
                 ).total_seconds()
-                if seconds_spent_in_wait < algorithm.maximum_websocket_interval:
-                    await asyncio.sleep(algorithm.maximum_websocket_interval - seconds_spent_in_wait)
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def subscribe_to_population_members(self, algorithm: Algorithm, population: Population, websocket: aiohttp.web.WebSocketResponse):
         with population.members_event.subscribe() as subscription:
@@ -175,8 +175,8 @@ class Api:
                 seconds_spent_in_wait = (
                     datetime.datetime.now() - last_websocket_message
                 ).total_seconds()
-                if seconds_spent_in_wait < algorithm.maximum_websocket_interval:
-                    await asyncio.sleep(algorithm.maximum_websocket_interval - seconds_spent_in_wait)
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def handle_population_websocket(self, request: aiohttp.web.Request):
         websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
