@@ -2,6 +2,7 @@
   "name": "ditef_producer_genetic_algorithm_sliding",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:8081/",
   "dependencies": {
     "@devexpress/dx-react-chart": "^2.7.3",
     "@devexpress/dx-react-chart-material-ui": "^2.7.3",
