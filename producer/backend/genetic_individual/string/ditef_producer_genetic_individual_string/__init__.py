@@ -1,6 +1,7 @@
 import aiohttp.web
 import asyncio
 import copy
+import datetime
 import json
 import random
 import string
@@ -178,10 +179,19 @@ class Individual:
         with self.update_event.subscribe() as subscription:
             while True:
                 await self.api_write_update_to_websocket(websocket)
+                last_websocket_message = datetime.datetime.now()
                 await subscription.wait()
+                seconds_spent_in_wait = (
+                    datetime.datetime.now() - last_websocket_message
+                ).total_seconds()
+                if seconds_spent_in_wait < Individual.maximum_websocket_interval:
+                    await asyncio.sleep(Individual.maximum_websocket_interval - seconds_spent_in_wait)
+
+    maximum_websocket_interval = 0
 
     @staticmethod
-    def api_add_routes(app: aiohttp.web.Application):
+    def api_add_routes(app: aiohttp.web.Application, maximum_websocket_interval: int):
+        Individual.maximum_websocket_interval = maximum_websocket_interval
         app.add_routes([
             aiohttp.web.get(
                 r'/genetic_individual_string/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
