@@ -10,8 +10,6 @@ import ditef_producer_shared.event
 import ditef_producer_shared.json
 import ditef_router.api_client
 
-from .html_visualize import show_individual
-
 
 class Individual:
 
@@ -417,6 +415,8 @@ class Individual:
             data={
                 'genome': self.genome,
                 'configuration': self.configuration,
+                'computational_cost': self.computational_cost,
+                'evaluation_result': self.evaluation_result,
                 'fitness': self.fitness(),
                 'creation_type': self.creation_type,
                 'genealogy_parents': {

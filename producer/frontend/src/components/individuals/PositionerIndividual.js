@@ -219,6 +219,8 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
   const classes = useStyles();
   const [genome, setGenome] = useState();
   const [configuration, setConfiguration] = useState();
+  const [computationalCost, setComputationalCost] = useState();
+  const [evaluationResult, setEvaluationResult] = useState();
   const [fitness, setFitness] = useState();
   const [creationType, setCreationType] = useState();
   const [genealogyParents, setGenealogyParents] = useState();
@@ -231,6 +233,14 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
       }
       case "configuration": {
         setConfiguration(payload);
+        break;
+      }
+      case "computational_cost": {
+        setComputationalCost(payload);
+        break;
+      }
+      case "evaluation_result": {
+        setEvaluationResult(payload);
         break;
       }
       case "fitness": {
@@ -283,18 +293,21 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
             height="256"
             strokeWidth="0"
             fill="white" />
-        {genome && configuration && createArchitectureVisualization(genome, configuration)}
+          {genome && configuration && createArchitectureVisualization(genome, configuration)}
         </svg>
-        <pre>{//JSON.stringify(genome,null,2)
-        }</pre>
-        <pre>{//JSON.stringify(configuration,null,2)
-        }</pre>
+        {genome && <pre>{JSON.stringify(genome,null,2)}</pre>}
+        {configuration && <pre>{JSON.stringify(configuration,null,2)}</pre>}
+        {computationalCost && <pre>{JSON.stringify(computationalCost,null,2)}</pre>}
+        {evaluationResult && <pre>{JSON.stringify(evaluationResult,null,2)}</pre>}
       </Paper>
     </Container>
     <Container>
       <Typography variant="h5" className={classes.headingSpacing}>Fitness</Typography>
       <Paper elevation={3} className={classes.fitnessPaper}>
-        <Typography className={classes.fitness}>{fitness}</Typography>
+        <Typography className={classes.fitness}>
+          {fitness}
+          {!fitness && "waiting for evaluation..."}
+        </Typography>
       </Paper>
     </Container>
     <Container>
