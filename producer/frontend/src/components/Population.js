@@ -114,7 +114,7 @@ export default function Population({ onConnectedChange }) {
   }, []);
   const [connected, error, send] = useWebSocket(
     typeof populationId === "string",
-    `ws://localhost:8081/genetic_algorithm_sliding/api/population/${populationId}/ws/`,
+    `ws://${window.location.host}/genetic_algorithm_sliding/api/population/${populationId}/ws/`,
     onWebSocketMessage,
   );
   const [currentConfiguration, setCurrentConfiguration] = useState("");

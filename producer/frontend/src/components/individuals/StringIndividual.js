@@ -89,7 +89,7 @@ export default function StringIndividual({ url, onConnectedChange }) {
   }, []);
   const [connected, error,] = useWebSocket(
     true,
-    `ws://localhost:8081${url}`,
+    `ws://${window.location.host}${url}`,
     onWebSocketMessage,
   );
 
