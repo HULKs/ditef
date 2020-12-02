@@ -8,10 +8,11 @@ from .population import Population
 
 class Algorithm:
 
-    def __init__(self, individual_type: str, pending_individuals: int, task_api_client: ditef_router.api_client.ApiClient):
+    def __init__(self, individual_type: str, pending_individuals: int, minimum_websocket_interval: int, task_api_client: ditef_router.api_client.ApiClient):
         self.individual_type = individual_type
         self.populations = []
         self.pending_individuals = pending_individuals
+        self.minimum_websocket_interval = minimum_websocket_interval
         self.task_api_client = task_api_client
         self.metric_event = ditef_producer_shared.event.BroadcastEvent()
 

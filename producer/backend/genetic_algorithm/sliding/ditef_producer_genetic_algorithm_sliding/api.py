@@ -62,7 +62,13 @@ class Api:
                     },
                     dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
+                last_websocket_message = datetime.datetime.now()
                 await subscription.wait()
+                seconds_spent_in_wait = (
+                    datetime.datetime.now() - last_websocket_message
+                ).total_seconds()
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def handle_populations_websocket(self, request: aiohttp.web.Request):
         websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
@@ -109,7 +115,7 @@ class Api:
 
         return websocket
 
-    async def subscribe_to_population_configuration(self, population: Population, websocket: aiohttp.web.WebSocketResponse):
+    async def subscribe_to_population_configuration(self, algorithm: Algorithm, population: Population, websocket: aiohttp.web.WebSocketResponse):
         with population.configuration_event.subscribe() as subscription:
             while True:
                 await websocket.send_json(
@@ -118,9 +124,15 @@ class Api:
                     },
                     dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
+                last_websocket_message = datetime.datetime.now()
                 await subscription.wait()
+                seconds_spent_in_wait = (
+                    datetime.datetime.now() - last_websocket_message
+                ).total_seconds()
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
-    async def subscribe_to_population_metrics(self, population: Population, websocket: aiohttp.web.WebSocketResponse):
+    async def subscribe_to_population_metrics(self, algorithm: Algorithm, population: Population, websocket: aiohttp.web.WebSocketResponse):
         with population.metric_event.subscribe() as subscription:
             while True:
                 await websocket.send_json(
@@ -134,7 +146,13 @@ class Api:
                     },
                     dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
+                last_websocket_message = datetime.datetime.now()
                 await subscription.wait()
+                seconds_spent_in_wait = (
+                    datetime.datetime.now() - last_websocket_message
+                ).total_seconds()
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def subscribe_to_population_members(self, algorithm: Algorithm, population: Population, websocket: aiohttp.web.WebSocketResponse):
         with population.members_event.subscribe() as subscription:
@@ -152,7 +170,13 @@ class Api:
                     },
                     dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
+                last_websocket_message = datetime.datetime.now()
                 await subscription.wait()
+                seconds_spent_in_wait = (
+                    datetime.datetime.now() - last_websocket_message
+                ).total_seconds()
+                if seconds_spent_in_wait < algorithm.minimum_websocket_interval:
+                    await asyncio.sleep(algorithm.minimum_websocket_interval - seconds_spent_in_wait)
 
     async def handle_population_websocket(self, request: aiohttp.web.Request):
         websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
@@ -164,6 +188,7 @@ class Api:
 
         configuration_subscription_task = asyncio.create_task(
             self.subscribe_to_population_configuration(
+                algorithm,
                 population,
                 websocket,
             ),
@@ -171,6 +196,7 @@ class Api:
 
         metric_subscription_task = asyncio.create_task(
             self.subscribe_to_population_metrics(
+                algorithm,
                 population,
                 websocket,
             ),

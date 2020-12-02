@@ -40,13 +40,17 @@ async def async_main(**arguments):
         app['algorithm'] = Algorithm(
             app['arguments']['individual_type'],
             app['arguments']['population_tasks'],
+            app['arguments']['minimum_websocket_interval'],
             task_api_client,
         )
         app.on_cleanup.append(cancel_populations)
 
         importlib.import_module(
             app['arguments']['individual_type'],
-        ).Individual.api_add_routes(app)
+        ).Individual.api_add_routes(
+            app,
+            app['arguments']['minimum_websocket_interval'],
+        )
 
         api = Api()
         api.add_routes(app)
@@ -76,6 +80,7 @@ async def async_main(**arguments):
 @click.option('--initial-retry-timeout', default=1, help='Initial retry timeout in seconds at beginning of back-off')
 @click.option('--maximum-retry-timeout', default=16, help='Upper bound of back-off retry timeout in seconds')
 @click.option('--population-tasks', default=3, help='Number of running tasks per population')
+@click.option('--minimum-websocket-interval', default=0.5, help='Shortest interval period in seconds for rate limiting outgoing websocket messages (set to 0 for no limit)')
 @click.argument('router_url', type=str)
 @click.argument('individual_type', type=str)
 def main(**arguments):

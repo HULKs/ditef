@@ -1,8 +1,6 @@
 import string
-import time
 
 def run(payload):
-    time.sleep(0.2)
     genome = payload['genome']
     target_string = payload['target_string']
 
