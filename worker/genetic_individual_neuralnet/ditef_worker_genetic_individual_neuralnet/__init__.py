@@ -10,6 +10,7 @@ def run(payload):
     result = {
         'compiledNN_result': 500.0,
         'accuracy':0,
+        'training_progression': [],
     }
 
     try:
@@ -41,9 +42,11 @@ def run(payload):
         current_lr = genome["initial_learning_rate"]
 
         for ep in range(genome["training_epochs"]):
-            model.fit(
-                train_dataset,
-                epochs=1)
+            ep_result = model.fit(
+                            train_dataset,
+                            epochs=1)
+            result['training_progression'].append(ep_result.history)
+
             current_lr *= genome["learning_rate_factor_per_epoch"]
             model.optimizer.lr.assign(current_lr)
 

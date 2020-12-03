@@ -456,7 +456,7 @@ class Individual:
         Individual.minimum_websocket_interval = minimum_websocket_interval
         app.add_routes([
             aiohttp.web.get(
-                r'/genetic_individual_bitvector/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
+                r'/genetic_individual_positioner/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
                 Individual.api_handle_websocket,
             ),
         ])

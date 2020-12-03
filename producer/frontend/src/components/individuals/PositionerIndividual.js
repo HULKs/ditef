@@ -52,7 +52,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function createConvLayerVisualization(x_index, key, filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, type, kernel_size) {
+function createConvLayerVisualization(x_index, key, filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, type, kernel_size, stride) {
   var svgCoponents = [];
 
   for (var i = filters-1; i>=0; i--) {
@@ -60,6 +60,8 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
     var  y = image_height - (input_size * enlarge_factor) - ((font_size + spacer) * free_lines_below) - (i*stackOffset) - ((original_input_size - input_size) * enlarge_factor / 2);
     var width = enlarge_factor * input_size;
     var height = enlarge_factor * input_size;
+
+    var textLine = 1;
 
     svgCoponents.push(
       <rect
@@ -74,7 +76,9 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
 
   }
   x = (x_index * ((original_input_size * enlarge_factor) + (2*spacer))) + ((original_input_size - input_size) * enlarge_factor / 2);
-  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - 1));
+  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine));
+
+  textLine = 3;
 
   svgCoponents.push(
     <text x={x+strokeWidth}
@@ -84,24 +88,32 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
       key={key.toString() + "_text1"}>{input_size}x{input_size}x{filters}</text>);
 
   x = ((x_index - 0.5) * ((original_input_size * enlarge_factor) + (2*spacer))) + ((original_input_size - input_size) * enlarge_factor / 2);
-  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - 3));
+  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
   svgCoponents.push(
     <text x={x+strokeWidth}
       y={y}
       fill="black"
       fontSize={font_size.toString() +"px"}
-      key={key.toString() + "_text2"}>{type}</text>);
+      key={key.toString() + "_text" + textLine.toString()}>{type}</text>);
 
-  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - 4));
+  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
   svgCoponents.push(
     <text x={x+strokeWidth}
       y={y}
       fill="black"
       fontSize={font_size.toString() +"px"}
-      key={key.toString() + "_text3"}>{kernel_size}</text>);
+      key={key.toString() + "_text" + textLine.toString()}>{kernel_size}</text>);
 
+  y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
+
+  svgCoponents.push(
+    <text x={x+strokeWidth}
+      y={y}
+      fill="black"
+      fontSize={font_size.toString() +"px"}
+      key={key.toString() + "_text" + textLine.toString()}>{stride}</text>);
   return svgCoponents;
 }
 
@@ -169,7 +181,7 @@ function createArchitectureVisualization(genome, configuration) {
 
   // input layer
   svgCoponents = svgCoponents.concat(
-    createConvLayerVisualization(index_offset, componentKey++, configuration.input_channels, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, "", "")
+    createConvLayerVisualization(index_offset, componentKey++, configuration.input_channels, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, "", "", "")
   );
 
   // convolutional layers
@@ -177,14 +189,14 @@ function createArchitectureVisualization(genome, configuration) {
     index_offset += 1;
     input_size = input_size / genome.convolution_layers[i].stride;
     svgCoponents = svgCoponents.concat(
-      createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].type, "kernel: " + genome.convolution_layers[i].kernel_size.toString()+"x"+genome.convolution_layers[i].kernel_size.toString())
+      createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].type, "kernel: " + genome.convolution_layers[i].kernel_size.toString()+"x"+genome.convolution_layers[i].kernel_size.toString(), "stride: " + genome.convolution_layers[i].stride.toString())
     );
 
     if (genome.convolution_layers[i].pooling_size > 1) {
       index_offset += 1;
       input_size = input_size / genome.convolution_layers[i].pooling_size;
       svgCoponents = svgCoponents.concat(
-        createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset,  genome.convolution_layers[i].pooling_type+" pool", "kernel: " + genome.convolution_layers[i].pooling_size.toString()+"x"+genome.convolution_layers[i].pooling_size.toString())
+        createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset,  genome.convolution_layers[i].pooling_type+" pool", "kernel: " + genome.convolution_layers[i].pooling_size.toString()+"x"+genome.convolution_layers[i].pooling_size.toString(), "")
       );
     }
   }
@@ -267,7 +279,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
   }, []);
   const [connected, error,] = useWebSocket(
     true,
-    `ws://localhost:8081${url}`,
+    `ws://${window.location.host}${url}`,
     onWebSocketMessage,
   );
 
