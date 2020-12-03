@@ -1,8 +1,8 @@
 import aiohttp.web
 import asyncio
 import copy
+import datetime
 import random
-import task_router.api_client
 import typing
 import uuid
 
@@ -202,7 +202,7 @@ class Individual:
 
     individuals = {}
 
-    def __init__(self, task_api_client: task_router.api_client.ApiClient, configuration: dict, id: str, genome: dict, creation_type: str):
+    def __init__(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict, id: str, genome: dict, creation_type: str):
         self.task_api_client = task_api_client
         self.configuration = configuration
         self.id = id
@@ -217,7 +217,7 @@ class Individual:
         self.update_event = ditef_producer_shared.event.BroadcastEvent()
 
     @staticmethod
-    def random(task_api_client: task_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         '''Generates a new random individual'''
 
         individual_id = str(uuid.uuid4())
@@ -275,7 +275,7 @@ class Individual:
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: task_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -293,7 +293,7 @@ class Individual:
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: task_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())
@@ -441,13 +441,22 @@ class Individual:
         with self.update_event.subscribe() as subscription:
             while True:
                 await self.api_write_update_to_websocket(websocket)
+                last_websocket_message = datetime.datetime.now()
                 await subscription.wait()
+                seconds_spent_in_wait = (
+                    datetime.datetime.now() - last_websocket_message
+                ).total_seconds()
+                if seconds_spent_in_wait < Individual.minimum_websocket_interval:
+                    await asyncio.sleep(Individual.minimum_websocket_interval - seconds_spent_in_wait)
+
+    minimum_websocket_interval = 0
 
     @staticmethod
-    def api_add_routes(app: aiohttp.web.Application):
+    def api_add_routes(app: aiohttp.web.Application, minimum_websocket_interval: int):
+        Individual.minimum_websocket_interval = minimum_websocket_interval
         app.add_routes([
             aiohttp.web.get(
-                r'/genetic_individual_positioner/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
+                r'/genetic_individual_bitvector/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
                 Individual.api_handle_websocket,
             ),
         ])
