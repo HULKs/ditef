@@ -13,10 +13,22 @@ import {
 } from "@material-ui/core";
 import {
   makeStyles,
+  useTheme,
 } from "@material-ui/core/styles";
 import {
   Link,
 } from "react-router-dom";
+import {
+  ArgumentScale,
+  ValueScale,
+} from '@devexpress/dx-react-chart';
+import {
+  Chart,
+  ArgumentAxis,
+  ValueAxis,
+  LineSeries,
+  Legend,
+} from '@devexpress/dx-react-chart-material-ui';
 
 import useWebSocket from "../../hooks/useWebSocket";
 
@@ -50,14 +62,17 @@ const useStyles = makeStyles(theme => ({
     textAlign: "center",
     fontStyle: "italic",
   },
+  chartLegend: {
+    marginLeft: theme.spacing(1.5),
+  },
 }));
 
 function createConvLayerVisualization(x_index, key, filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, type, kernel_size, stride, activationFunction) {
   var svgCoponents = [];
 
-  for (var i = filters-1; i>=0; i--) {
-    var x = (x_index * ((original_input_size * enlarge_factor) + (2*spacer))) + (i*stackOffset/2) + ((original_input_size - input_size) * enlarge_factor / 2);
-    var  y = image_height - (input_size * enlarge_factor) - ((font_size + spacer) * free_lines_below) - (i*stackOffset) - ((original_input_size - input_size) * enlarge_factor / 2);
+  for (var i = filters - 1; i >= 0; i--) {
+    var x = (x_index * ((original_input_size * enlarge_factor) + (2 * spacer))) + (i * stackOffset / 2) + ((original_input_size - input_size) * enlarge_factor / 2);
+    var y = image_height - (input_size * enlarge_factor) - ((font_size + spacer) * free_lines_below) - (i * stackOffset) - ((original_input_size - input_size) * enlarge_factor / 2);
     var width = enlarge_factor * input_size;
     var height = enlarge_factor * input_size;
 
@@ -65,7 +80,7 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
 
     svgCoponents.push(
       <rect
-        x={x+strokeWidth}
+        x={x + strokeWidth}
         y={y}
         width={width}
         height={height}
@@ -75,53 +90,53 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
         key={key.toString() + "_" + i.toString()} />);
 
   }
-  x = (x_index * ((original_input_size * enlarge_factor) + (2*spacer))) + ((original_input_size - input_size) * enlarge_factor / 2);
+  x = (x_index * ((original_input_size * enlarge_factor) + (2 * spacer))) + ((original_input_size - input_size) * enlarge_factor / 2);
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine));
 
   textLine = 3;
 
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text1"}>{input_size}x{input_size}x{filters}</text>);
 
-  x = ((x_index - 0.5) * ((original_input_size * enlarge_factor) + (2*spacer))) + ((original_input_size - input_size) * enlarge_factor / 2);
+  x = ((x_index - 0.5) * ((original_input_size * enlarge_factor) + (2 * spacer))) + ((original_input_size - input_size) * enlarge_factor / 2);
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text" + textLine.toString()}>{type}</text>);
 
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text" + textLine.toString()}>{kernel_size}</text>);
 
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text" + textLine.toString()}>{stride}</text>);
 
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text" + textLine.toString()}>{activationFunction}</text>);
   return svgCoponents;
 }
@@ -129,14 +144,14 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
 function createDenseLayerVisualization(x_index, key, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, strokeWidth, neurons, type, activation) {
   var svgCoponents = [];
   var layer_size = 2 * Math.log(neurons);
-  var x = (x_index * ((original_input_size * enlarge_factor) + (2*spacer)));
-  var  y = image_height - (layer_size * enlarge_factor) - ((font_size + spacer) * free_lines_below) - ((original_input_size - layer_size) * enlarge_factor / 2);
+  var x = (x_index * ((original_input_size * enlarge_factor) + (2 * spacer)));
+  var y = image_height - (layer_size * enlarge_factor) - ((font_size + spacer) * free_lines_below) - ((original_input_size - layer_size) * enlarge_factor / 2);
   var width = enlarge_factor * 2;
   var height = enlarge_factor * layer_size;
 
   svgCoponents.push(
     <rect
-      x={x+strokeWidth}
+      x={x + strokeWidth}
       y={y}
       width={width}
       height={height}
@@ -145,30 +160,30 @@ function createDenseLayerVisualization(x_index, key, image_height, spacer, font_
       fill="white"
       key={key} />);
 
-  x = (x_index * ((original_input_size * enlarge_factor) + (2*spacer)));
+  x = (x_index * ((original_input_size * enlarge_factor) + (2 * spacer)));
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - 1));
 
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text1"}>{neurons}</text>);
 
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - 3));
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text2"}>{type}</text>);
 
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - 4));
   svgCoponents.push(
-    <text x={x+strokeWidth}
+    <text x={x + strokeWidth}
       y={y}
       fill="black"
-      fontSize={font_size.toString() +"px"}
+      fontSize={font_size.toString() + "px"}
       key={key.toString() + "_text3"}>{activation}</text>);
 
   return svgCoponents;
@@ -198,20 +213,20 @@ function createArchitectureVisualization(genome, configuration) {
     index_offset += 1;
     input_size = input_size / genome.convolution_layers[i].stride;
     svgCoponents = svgCoponents.concat(
-      createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].type, "kernel: " + genome.convolution_layers[i].kernel_size.toString()+"x"+genome.convolution_layers[i].kernel_size.toString(), "stride: " + genome.convolution_layers[i].stride.toString(), genome.convolution_layers[i].activation_function)
+      createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].type, "kernel: " + genome.convolution_layers[i].kernel_size.toString() + "x" + genome.convolution_layers[i].kernel_size.toString(), "stride: " + genome.convolution_layers[i].stride.toString(), genome.convolution_layers[i].activation_function)
     );
 
     if (genome.convolution_layers[i].pooling_size > 1) {
       index_offset += 1;
       input_size = input_size / genome.convolution_layers[i].pooling_size;
       svgCoponents = svgCoponents.concat(
-        createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset,  genome.convolution_layers[i].pooling_type+" pool", "kernel: " + genome.convolution_layers[i].pooling_size.toString()+"x"+genome.convolution_layers[i].pooling_size.toString(), "", "")
+        createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].pooling_type + " pool", "kernel: " + genome.convolution_layers[i].pooling_size.toString() + "x" + genome.convolution_layers[i].pooling_size.toString(), "", "")
       );
     }
   }
 
   // Flatten layer
-  var flat_neurons = input_size * input_size * genome.convolution_layers[genome.convolution_layers.length-1].filters;
+  var flat_neurons = input_size * input_size * genome.convolution_layers[genome.convolution_layers.length - 1].filters;
 
   index_offset += 1;
   svgCoponents = svgCoponents.concat(
@@ -220,7 +235,7 @@ function createArchitectureVisualization(genome, configuration) {
 
   // Dense layers
 
-  for (var j = 0; j < genome.dense_layers.length; j++){
+  for (var j = 0; j < genome.dense_layers.length; j++) {
     index_offset += 0.75;
     svgCoponents = svgCoponents.concat(
       createDenseLayerVisualization(index_offset, componentKey++, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, strokeWidth, genome.dense_layers[j].units, "Dense", genome.dense_layers[j].activation_function)
@@ -238,6 +253,7 @@ function createArchitectureVisualization(genome, configuration) {
 
 export default function PositionerIndividual({ url, onConnectedChange }) {
   const classes = useStyles();
+  const theme = useTheme();
   const [genome, setGenome] = useState();
   const [configuration, setConfiguration] = useState();
   const [computationalCost, setComputationalCost] = useState();
@@ -304,6 +320,12 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
     return <Typography>Loading...</Typography>;
   }
 
+  const trainingProgression = evaluationResult ? evaluationResult.training_progression.map((item, epoch) => ({
+    epoch: epoch,
+    accuracy: item.accuracy[0],
+    loss: item.loss[0],
+  })) : [];
+
   return <>
     <Container>
       <Typography variant="h5" className={classes.headingSpacing}>Positioner Genome</Typography>
@@ -336,22 +358,39 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
       </Paper>
     </Container>
     <Container>
-    <Grid container spacing={2}>
+      <Grid container spacing={2}>
         <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
           <Typography variant="h5" className={classes.headingSpacing}>Computational Cost</Typography>
           <Paper elevation={3} className={classes.fitnessPaper}>
             <pre>{configuration && computationalCost &&
-            "Raw cost: " + computationalCost.toString() +
-            "\nCost factor: " + configuration.computational_cost_factor.toString() +
-            "\nFitness contribution: " + (-configuration.computational_cost_factor * computationalCost).toString()}</pre>
+              "Raw cost: " + computationalCost.toString() +
+              "\nCost factor: " + configuration.computational_cost_factor.toString() +
+              "\nFitness contribution: " + (-configuration.computational_cost_factor * computationalCost).toString()}</pre>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
           <Typography variant="h5" className={classes.headingSpacing}>Training Progression</Typography>
-          <Paper elevation={3} className={classes.fitnessPaper}>
-            {evaluationResult && <pre>{JSON.stringify(evaluationResult.training_progression,null,2)}</pre>}
-            {!evaluationResult && "waiting for evaluation..."}
-          </Paper>
+          {evaluationResult && <Paper elevation={3}>
+            <Chart data={trainingProgression} height={theme.spacing(30)}>
+              <ValueScale />
+              <ArgumentScale />
+              <ArgumentAxis showGrid />
+              <ValueAxis />
+              <LineSeries name="Accuracy" valueField="accuracy" argumentField="epoch" />
+              <LineSeries name="Loss" valueField="loss" argumentField="epoch" />
+              <Legend
+                rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
+                itemComponent={({ children }) => <Grid container spacing={1}>{children.map((child, index) => <Grid item key={index}>{child}</Grid>)}</Grid>}
+                markerComponent={({ color }) => <svg fill={color} width={theme.spacing(1)} height={theme.spacing(1)}><circle r={theme.spacing(1) / 2} cx={theme.spacing(1) / 2} cy={theme.spacing(1) / 2} /></svg>}
+                labelComponent={({ text }) => <Typography variant="body2">{text}</Typography>}
+              />
+            </Chart>
+          </Paper>}
+          {!evaluationResult && <Paper elevation={3} className={classes.fitnessPaper}>
+            <Typography className={classes.fitness}>
+              waiting for evaluation...
+            </Typography>
+          </Paper>}
         </Grid>
       </Grid>
     </Container>
