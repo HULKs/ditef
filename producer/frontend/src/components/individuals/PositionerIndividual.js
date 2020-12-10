@@ -320,11 +320,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
     return <Typography>Loading...</Typography>;
   }
 
-  const trainingProgression = evaluationResult ? evaluationResult.training_progression.map((item, epoch) => ({
-    epoch: epoch,
-    accuracy: item.accuracy[0],
-    loss: item.loss[0],
-  })) : [];
+  const trainingProgression = evaluationResult ? evaluationResult.training_progression : [];
 
   return <>
     <Container>

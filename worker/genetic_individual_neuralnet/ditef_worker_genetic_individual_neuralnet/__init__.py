@@ -7,13 +7,13 @@ import json
 def run(payload):
     genome = payload['genome']
     configuration = payload['configuration']
-    result = {
+    run_result = {
         'compiledNN_result': 500.0,
         'accuracy':0,
         'training_progression': [],
     }
     tmp_model_path = pathlib.Path('tmp_' + payload['id'] + '.hdf5')
-
+    print("start evaluation of", payload['id'])
     try:
         model = build_model(genome, configuration)
         model.compile(
@@ -40,16 +40,24 @@ def run(payload):
                                     configuration['input_size_x'] * configuration['input_size_y'],
                                     configuration['augment_params'])
 
-        current_lr = genome['initial_learning_rate']
+        model.optimizer.lr.assign(genome['initial_learning_rate'])
 
-        for ep in range(genome['training_epochs']):
-            ep_result = model.fit(
-                            train_dataset,
-                            epochs=1)
-            result['training_progression'].append(ep_result.history)
+        tf_train_result = model.fit(
+                        train_dataset,
+                        epochs=genome['training_epochs'])
 
-            current_lr *= genome['learning_rate_factor_per_epoch']
-            model.optimizer.lr.assign(current_lr)
+        run_result['training_progression'] = [
+            {
+                name: tf_train_result.history[name][ep]
+                for name in (['loss'] + configuration['metrics'])
+            }
+            for ep in range(genome['training_epochs'])
+        ]
+
+        epoch = 0
+        for epoch_entry in run_result['training_progression']:
+            run_result['training_progression'][epoch]['epoch'] = epoch + 1
+            epoch += 1
 
         evaluate_result = {
             name: value
@@ -58,24 +66,24 @@ def run(payload):
         }
 
         for key in evaluate_result:
-            result[key] = evaluate_result[key]
+            run_result[key] = evaluate_result[key]
 
         tf.keras.models.save_model(
             model,
             str(tmp_model_path),
             save_format='h5')
 
-        result['compiledNN_result'] = compiledNN_average_distance(model,
+        run_result['compiledNN_result'] = compiledNN_average_distance(model,
                                                                   tmp_model_path,
                                                                   verify_dataset,
                                                                   configuration)
 
     except Exception as e:
-        result['exception'] = str(e)
+        run_result['exception'] = str(e)
 
     tmp_model_path.unlink()
     tf.keras.backend.clear_session()
-    return result
+    return run_result
 
 
 def build_convolution_layers(genome):
