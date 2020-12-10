@@ -12,6 +12,7 @@ def run(payload):
         'accuracy':0,
         'training_progression': [],
     }
+    tmp_model_path = pathlib.Path('tmp_' + payload['id'] + '.hdf5')
 
     try:
         model = build_model(genome, configuration)
@@ -39,15 +40,15 @@ def run(payload):
                                     configuration['input_size_x'] * configuration['input_size_y'],
                                     configuration['augment_params'])
 
-        current_lr = genome["initial_learning_rate"]
+        current_lr = genome['initial_learning_rate']
 
-        for ep in range(genome["training_epochs"]):
+        for ep in range(genome['training_epochs']):
             ep_result = model.fit(
                             train_dataset,
                             epochs=1)
             result['training_progression'].append(ep_result.history)
 
-            current_lr *= genome["learning_rate_factor_per_epoch"]
+            current_lr *= genome['learning_rate_factor_per_epoch']
             model.optimizer.lr.assign(current_lr)
 
         evaluate_result = {
@@ -59,8 +60,6 @@ def run(payload):
         for key in evaluate_result:
             result[key] = evaluate_result[key]
 
-        #TODO: change tmp model path ?
-        tmp_model_path = pathlib.Path("tmp_model.hdf5")
         tf.keras.models.save_model(
             model,
             str(tmp_model_path),
@@ -71,12 +70,10 @@ def run(payload):
                                                                   verify_dataset,
                                                                   configuration)
 
-
-        tmp_model_path.unlink()
-
     except Exception as e:
         result['exception'] = str(e)
 
+    tmp_model_path.unlink()
     tf.keras.backend.clear_session()
     return result
 
@@ -198,8 +195,8 @@ def shape_and_augment_sample(data, shape, augment_params):
     image = tf.reshape(tf.cast(data, tf.float32), shape)
     image = tf.image.random_brightness(
                 image,
-                augment_params["random_brightness_delta"],
-                seed=augment_params["random_brightness_seed"])
+                augment_params['random_brightness_delta'],
+                seed=augment_params['random_brightness_seed'])
     image = tf.clip_by_value(image, 0.0, 255.0, name=None)
     return(image)
 
@@ -237,12 +234,12 @@ def parse_tfrecord_verify(data_size, example):
 
 
 def get_dataset(tfr_ds, batch_size, nnType, data_size, augment_params):
-    if (nnType == "positioner"):
+    if (nnType == 'positioner'):
         tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_circle(data_size, augment_params, x))
         tfr_ds = tfr_ds.batch(batch_size)
         tfr_ds = tfr_ds.prefetch(batch_size)
         return tfr_ds
-    elif (nnType == "verify"):
+    elif (nnType == 'verify'):
         tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_verify(data_size, x))
         return tfr_ds
     else:
@@ -253,7 +250,7 @@ def get_dataset(tfr_ds, batch_size, nnType, data_size, augment_params):
 
 
 def compiledNN_average_distance(model, model_path, verification_dataset, configuration):
-    print("compiledNN check start")
+    print('compiledNN check start')
     verification_dataset_size = sum(1 for _ in verification_dataset)
     model_predictions = model.predict(verification_dataset.batch(verification_dataset_size))
 
@@ -281,13 +278,13 @@ def compiledNN_average_distance(model, model_path, verification_dataset, configu
         for model_value, compiled_nn_value in zip(model_prediction, json.loads(compiled_nn_prediction)):
             value_counter += 1
             if compiled_nn_value is None: #TODO: investigate this / log error
-                print("compiled_nn_value is None...")
+                print('compiled_nn_value is None...')
                 #return 100.0
             distance += abs(model_value - compiled_nn_value)
 
     if value_counter == 0: #TODO: investigate this / log error
-        print("compiledNN value_counter == 0...")
+        print('compiledNN value_counter == 0...')
         #return 200.0
 
-    print("compiledNN check finished")
+    print('compiledNN check finished')
     return (distance / value_counter)

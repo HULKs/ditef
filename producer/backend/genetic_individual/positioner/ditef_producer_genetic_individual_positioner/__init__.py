@@ -390,6 +390,7 @@ class Individual:
         self.evaluation_result = await self.task_api_client.run(
             'ditef_worker_genetic_individual_neuralnet',
             {
+                'id': self.id,
                 'genome': self.genome,
                 'configuration': self.configuration
             }
