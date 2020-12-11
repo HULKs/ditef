@@ -19,6 +19,9 @@ import {
   Link,
 } from "react-router-dom";
 import {
+  scaleBand,
+} from '@devexpress/dx-chart-core';
+import {
   ArgumentScale,
   ValueScale,
 } from '@devexpress/dx-react-chart';
@@ -398,7 +401,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
           {evaluationResult && <Paper elevation={3}>
             <Chart data={evaluationResult ? evaluationResult.training_progression : []} height={theme.spacing(30)}>
               <ValueScale />
-              <ArgumentScale />
+              <ArgumentScale factory={scaleBand}/>
               <ArgumentAxis showGrid />
               <ValueAxis />
               {trainingCurves}
