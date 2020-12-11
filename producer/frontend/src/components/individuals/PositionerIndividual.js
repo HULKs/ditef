@@ -335,6 +335,8 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
     }
   }
 
+  const neuralnetType = configuration ? configuration.type.charAt(0).toUpperCase() + configuration.type.slice(1) : "Neural Net";
+
   useEffect(() => {
     onConnectedChange(connected);
   }, [onConnectedChange, connected]);
@@ -349,7 +351,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
 
   return <>
     <Container>
-      <Typography variant="h5" className={classes.headingSpacing}>Positioner Genome</Typography>
+      {configuration && <Typography variant="h5" className={classes.headingSpacing}>{neuralnetType} Genome</Typography>}
       <Paper elevation={3} className={classes.genomePaper}>
         <svg width="100%" height="256">
           <rect x="0" y="0"
