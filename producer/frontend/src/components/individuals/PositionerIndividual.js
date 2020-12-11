@@ -314,7 +314,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
     var trainingCurveList = Object.keys(evaluationResult.training_progression[0]);
     trainingCurveList.splice(trainingCurveList.indexOf("epoch"),1);
 
-    if (evaluationResult.training_progression.length == 1){
+    if (evaluationResult.training_progression.length === 1){
       trainingCurveList.forEach(trainingPoint);
       function trainingPoint(item, index)
       {
