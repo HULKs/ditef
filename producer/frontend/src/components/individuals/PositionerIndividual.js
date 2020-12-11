@@ -68,7 +68,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function createConvLayerVisualization(x_index, key, filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, type, kernel_size, stride, activationFunction) {
+function createConvLayerVisualization(x_index, key, filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, type, kernel_size, stride, activation) {
   var svgCoponents = [];
 
   for (var i = filters - 1; i >= 0; i--) {
@@ -111,7 +111,7 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
       y={y}
       fill="black"
       fontSize={font_size.toString() + "px"}
-      key={key.toString() + "_text" + textLine.toString()}>{type}</text>);
+      key={key.toString() + "_text" + textLine.toString()}>{type.charAt(0).toUpperCase() + type.slice(1)}</text>);
 
   y = image_height - spacer - ((font_size + spacer) * (free_lines_below - textLine++));
 
@@ -138,7 +138,7 @@ function createConvLayerVisualization(x_index, key, filters, image_height, space
       y={y}
       fill="black"
       fontSize={font_size.toString() + "px"}
-      key={key.toString() + "_text" + textLine.toString()}>{activationFunction}</text>);
+      key={key.toString() + "_text" + textLine.toString()}>{activation.charAt(0).toUpperCase() + activation.slice(1)}</text>);
   return svgCoponents;
 }
 
@@ -185,7 +185,7 @@ function createDenseLayerVisualization(x_index, key, image_height, spacer, font_
       y={y}
       fill="black"
       fontSize={font_size.toString() + "px"}
-      key={key.toString() + "_text3"}>{activation}</text>);
+      key={key.toString() + "_text3"}>{activation.charAt(0).toUpperCase() + activation.slice(1)}</text>);
 
   return svgCoponents;
 }
@@ -214,14 +214,14 @@ function createArchitectureVisualization(genome, configuration) {
     index_offset += 1;
     input_size = input_size / genome.convolution_layers[i].stride;
     svgCoponents = svgCoponents.concat(
-      createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].type, "kernel: " + genome.convolution_layers[i].kernel_size.toString() + "x" + genome.convolution_layers[i].kernel_size.toString(), "stride: " + genome.convolution_layers[i].stride.toString(), genome.convolution_layers[i].activation_function)
+      createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].type, "Kernels: " + genome.convolution_layers[i].kernel_size.toString() + "x" + genome.convolution_layers[i].kernel_size.toString(), "Stride: " + genome.convolution_layers[i].stride.toString(), genome.convolution_layers[i].activation_function)
     );
 
     if (genome.convolution_layers[i].pooling_size > 1) {
       index_offset += 1;
       input_size = input_size / genome.convolution_layers[i].pooling_size;
       svgCoponents = svgCoponents.concat(
-        createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].pooling_type + " pool", "kernel: " + genome.convolution_layers[i].pooling_size.toString() + "x" + genome.convolution_layers[i].pooling_size.toString(), "", "")
+        createConvLayerVisualization(index_offset, componentKey++, genome.convolution_layers[i].filters, image_height, spacer, font_size, free_lines_below, enlarge_factor, original_input_size, input_size, strokeWidth, stackOffset, genome.convolution_layers[i].pooling_type + " pool", "Kernel: " + genome.convolution_layers[i].pooling_size.toString() + "x" + genome.convolution_layers[i].pooling_size.toString(), "", "")
       );
     }
   }
