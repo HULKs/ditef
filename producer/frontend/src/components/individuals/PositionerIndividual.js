@@ -308,6 +308,19 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
     onWebSocketMessage,
   );
 
+  var trainingCurves = [];
+  if (evaluationResult) {
+    var trainingCurveList = Object.keys(evaluationResult.training_progression[0]);
+    trainingCurveList.splice(trainingCurveList.indexOf("epoch"),1);
+
+    trainingCurveList.forEach(trainingCurve);
+    function trainingCurve(item, index)
+    {
+      const name = item.charAt(0).toUpperCase() + item.slice(1);
+      trainingCurves.push(<LineSeries name={name} valueField={item} key={item} argumentField="epoch" />);
+    }
+  }
+
   useEffect(() => {
     onConnectedChange(connected);
   }, [onConnectedChange, connected]);
@@ -319,8 +332,6 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
   if (!connected) {
     return <Typography>Loading...</Typography>;
   }
-
-  const trainingProgression = evaluationResult ? evaluationResult.training_progression : [];
 
   return <>
     <Container>
@@ -348,8 +359,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
       <Typography variant="h5" className={classes.headingSpacing}>Fitness</Typography>
       <Paper elevation={3} className={classes.fitnessPaper}>
         <Typography className={classes.fitness}>
-          {fitness}
-          {!fitness && "waiting for evaluation..."}
+          {evaluationResult ? fitness : "waiting for evaluation"}
         </Typography>
       </Paper>
     </Container>
@@ -359,21 +369,28 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
           <Typography variant="h5" className={classes.headingSpacing}>Computational Cost</Typography>
           <Paper elevation={3} className={classes.fitnessPaper}>
             <pre>{configuration && computationalCost &&
-              "Raw cost: " + computationalCost.toString() +
-              "\nCost factor: " + configuration.computational_cost_factor.toString() +
-              "\nFitness contribution: " + (-configuration.computational_cost_factor * computationalCost).toString()}</pre>
+              "            Raw cost: " + computationalCost +
+              "\n         Cost factor: " + configuration.computational_cost_factor +
+              "\nFitness contribution: " + (-configuration.computational_cost_factor * computationalCost)}</pre>
+          </Paper>
+          <Typography variant="h5" className={classes.headingSpacing}>CompiledNN Check</Typography>
+          <Paper elevation={3} className={classes.fitnessPaper}>
+            <pre>{evaluationResult ?
+              "CompiledNN average distance: " + evaluationResult.compiledNN_result +
+              "\n Average distance threshold: " + configuration.compiledNN_threshold +
+              "\nDistance is below threshold: " + (evaluationResult.compiledNN_result <= configuration.compiledNN_threshold) :
+              "waiting for evaluation"}</pre>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
           <Typography variant="h5" className={classes.headingSpacing}>Training Progression</Typography>
           {evaluationResult && <Paper elevation={3}>
-            <Chart data={trainingProgression} height={theme.spacing(30)}>
+            <Chart data={evaluationResult ? evaluationResult.training_progression : []} height={theme.spacing(30)}>
               <ValueScale />
               <ArgumentScale />
               <ArgumentAxis showGrid />
               <ValueAxis />
-              <LineSeries name="Accuracy" valueField="accuracy" argumentField="epoch" />
-              <LineSeries name="Loss" valueField="loss" argumentField="epoch" />
+              {trainingCurves}
               <Legend
                 rootComponent={({ children }) => <div className={classes.chartLegend}>{children}</div>}
                 itemComponent={({ children }) => <Grid container spacing={1}>{children.map((child, index) => <Grid item key={index}>{child}</Grid>)}</Grid>}
@@ -383,9 +400,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
             </Chart>
           </Paper>}
           {!evaluationResult && <Paper elevation={3} className={classes.fitnessPaper}>
-            <Typography className={classes.fitness}>
-              waiting for evaluation...
-            </Typography>
+              <pre>waiting for evaluation...</pre>
           </Paper>}
         </Grid>
       </Grid>
