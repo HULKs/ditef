@@ -27,6 +27,7 @@ import {
   ArgumentAxis,
   ValueAxis,
   LineSeries,
+  ScatterSeries,
   Legend,
 } from '@devexpress/dx-react-chart-material-ui';
 
@@ -313,11 +314,21 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
     var trainingCurveList = Object.keys(evaluationResult.training_progression[0]);
     trainingCurveList.splice(trainingCurveList.indexOf("epoch"),1);
 
-    trainingCurveList.forEach(trainingCurve);
-    function trainingCurve(item, index)
-    {
-      const name = item.charAt(0).toUpperCase() + item.slice(1);
-      trainingCurves.push(<LineSeries name={name} valueField={item} key={item} argumentField="epoch" />);
+    if (evaluationResult.training_progression.length == 1){
+      trainingCurveList.forEach(trainingPoint);
+      function trainingPoint(item, index)
+      {
+        const name = item.charAt(0).toUpperCase() + item.slice(1);
+        trainingCurves.push(<ScatterSeries name={name} valueField={item} key={item} argumentField="epoch" />);
+      }
+    }
+    else {
+      trainingCurveList.forEach(trainingCurve);
+      function trainingCurve(item, index)
+      {
+        const name = item.charAt(0).toUpperCase() + item.slice(1);
+        trainingCurves.push(<LineSeries name={name} valueField={item} key={item} argumentField="epoch" />);
+      }
     }
   }
 
