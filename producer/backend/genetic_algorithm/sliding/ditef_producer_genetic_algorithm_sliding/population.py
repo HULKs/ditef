@@ -59,7 +59,7 @@ class Population:
     populations = []
     loaded_default_configuration = None
 
-    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: Path):
+    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: Path, id: str):
         self.individual_type = individual_type
         self.task_api_client = task_api_client
         self.algorithm_metric_event = algorithm_event
@@ -69,6 +69,7 @@ class Population:
         self.members_event = ditef_producer_shared.event.BroadcastEvent()
         self.members = []
         self.state_path = state_path
+        self.id = id
         self.history = pandas.DataFrame(
             data={
                 'amount_of_members': pandas.Series([], dtype='int64'),
@@ -101,10 +102,19 @@ class Population:
     async def finalize_new_member_operation(self, individual):
         self.members.append(individual)
         individual.write_to_file(self.state_path/'individuals')
+        self.write_to_file()
         self.members_event.notify()
         await individual.evaluate()
         individual.write_to_file(self.state_path/'individuals')
         self.members_event.notify()
+
+    def write_to_file(self):
+        data = {
+            'members': [member.id for member in self.members],
+            'configuration': self.configuration,
+        }
+        with open(self.state_path/'populations'/(self.id + '.json'), 'w') as f:
+            json.dump(data, f, indent=4)
 
     async def random_operation(self):
         Population.purge_dead_populations()

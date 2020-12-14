@@ -2,6 +2,7 @@ import asyncio
 import json
 import importlib
 from pathlib import Path
+import uuid
 
 import ditef_producer_shared.event
 import ditef_router.api_client
@@ -30,7 +31,8 @@ class Algorithm:
             self.task_api_client,
             self.metric_event,
             configuration,
-            self.state_path
+            self.state_path,
+            str(uuid.uuid4())
         )
         self.populations.append({
             'population': population,
@@ -62,6 +64,7 @@ class Algorithm:
                 self.metric_event,
                 population_data['configuration'],
                 self.state_path,
+                population_file.stem
             )
             for member_id in population_data['members']:
                 new_population.load_member_from_static_dict(member_id)
