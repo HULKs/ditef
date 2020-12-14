@@ -30,6 +30,7 @@ class Algorithm:
             self.task_api_client,
             self.metric_event,
             configuration,
+            self.state_path
         )
         self.populations.append({
             'population': population,
@@ -60,6 +61,7 @@ class Algorithm:
                 self.task_api_client,
                 self.metric_event,
                 population_data['configuration'],
+                self.state_path,
             )
             for member_id in population_data['members']:
                 new_population.load_member_from_static_dict(member_id)

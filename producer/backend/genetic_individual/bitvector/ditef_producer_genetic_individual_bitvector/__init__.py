@@ -59,6 +59,18 @@ class Individual:
         if 'evaluation_result' in individual_data:
             Individual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
+    def write_to_file(self, individuals_path: Path):
+        data = {
+            'genome': self.genome,
+            'creation_type': self.creation_type,
+            'genealogy_parents':  self.genealogy_parents,
+            'genealogy_children': self.genealogy_children
+        }
+        if self.evaluation_result is not None:
+            data['evaluation_result'] = self.evaluation_result
+        with open((individuals_path/(self.id + '.json')), 'w') as f:
+            json.dump(data, f, indent=4)
+
     @staticmethod
     def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         '''Generates a new random individual'''

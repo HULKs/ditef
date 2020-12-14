@@ -59,7 +59,7 @@ class Population:
     populations = []
     loaded_default_configuration = None
 
-    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict):
+    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: Path):
         self.individual_type = individual_type
         self.task_api_client = task_api_client
         self.algorithm_metric_event = algorithm_event
@@ -68,6 +68,7 @@ class Population:
         self.metric_event = ditef_producer_shared.event.BroadcastEvent()
         self.members_event = ditef_producer_shared.event.BroadcastEvent()
         self.members = []
+        self.state_path = state_path
         self.history = pandas.DataFrame(
             data={
                 'amount_of_members': pandas.Series([], dtype='int64'),
@@ -92,13 +93,18 @@ class Population:
                 self.task_api_client,
                 self.configuration,
             )
-            self.members.append(random_individual)
-            self.members_event.notify()
-            await random_individual.evaluate()
-            self.members_event.notify()
+            await self.finalize_new_member_operation(random_individual)
             self.append_to_history()
             self.algorithm_metric_event.notify()
             self.metric_event.notify()
+
+    async def finalize_new_member_operation(self, individual):
+        self.members.append(individual)
+        individual.write_to_file(self.state_path/'individuals')
+        self.members_event.notify()
+        await individual.evaluate()
+        individual.write_to_file(self.state_path/'individuals')
+        self.members_event.notify()
 
     async def random_operation(self):
         Population.purge_dead_populations()
@@ -128,10 +134,7 @@ class Population:
             self.configuration,
             'migrant',
         )
-        self.members.append(migrated_individual)
-        self.members_event.notify()
-        await migrated_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(migrated_individual)
 
     async def clone_operation(self):
         cloned_individual = importlib.import_module(
@@ -143,10 +146,7 @@ class Population:
             'clone',
         )
         cloned_individual.mutate()
-        self.members.append(cloned_individual)
-        self.members_event.notify()
-        await cloned_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(cloned_individual)
 
     async def random_individual_operation(self):
         random_individual = importlib.import_module(
@@ -155,10 +155,7 @@ class Population:
             self.task_api_client,
             self.configuration,
         )
-        self.members.append(random_individual)
-        self.members_event.notify()
-        await random_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(random_individual)
 
     async def cross_over_individual_operation(self):
         parent_a, parent_b = random.sample(self.members, k=2)
@@ -171,10 +168,7 @@ class Population:
             self.configuration,
         )
         crossed_over_individual.mutate()
-        self.members.append(crossed_over_individual)
-        self.members_event.notify()
-        await crossed_over_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(crossed_over_individual)
 
     def load_member_from_static_dict(self, individual_id):
         individual = importlib.import_module(
