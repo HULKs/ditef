@@ -40,6 +40,7 @@ async def async_main(**arguments):
         app['algorithm'] = Algorithm(
             app['arguments']['individual_type'],
             app['arguments']['population_tasks'],
+            app['arguments']['state_path'],
             app['arguments']['minimum_websocket_interval'],
             task_api_client,
         )
@@ -83,5 +84,6 @@ async def async_main(**arguments):
 @click.option('--minimum-websocket-interval', default=0.5, help='Shortest interval period in seconds for rate limiting outgoing websocket messages (set to 0 for no limit)')
 @click.argument('router_url', type=str)
 @click.argument('individual_type', type=str)
+@click.argument('state_path', type=str)
 def main(**arguments):
     asyncio.run(async_main(**arguments))

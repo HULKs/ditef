@@ -3,6 +3,7 @@ import asyncio
 import copy
 import datetime
 import json
+from pathlib import Path
 import random
 import string
 import textwrap
@@ -43,9 +44,25 @@ class Individual:
         self.creation_type = creation_type
         self.genealogy_parents = []
         self.genealogy_children = []
-        self.correct_characters: typing.Optional[int] = None
-        self.length_difference: typing.Optional[int] = None
+        self.evaluation_result: typing.Optional[dict] = None
         self.update_event = ditef_producer_shared.event.BroadcastEvent()
+
+    @staticmethod
+    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration):
+        with open(individual_file, 'r') as f:
+            individual_data = json.loads(f.read())
+
+        Individual.individuals[individual_file.stem] = Individual(task_api_client,
+            configuration,
+            individual_file.stem,
+            individual_data['genome'],
+            individual_data['creation_type'])
+
+        Individual.individuals[individual_file.stem].genealogy_parents = individual_data['genealogy_parents']
+        Individual.individuals[individual_file.stem].genealogy_children = individual_data['genealogy_children']
+
+        if 'evaluation_result' in individual_data:
+            Individual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
     @staticmethod
     def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
@@ -131,20 +148,18 @@ class Individual:
         self.update_event.notify()
 
     async def evaluate(self):
-        result = await self.task_api_client.run(
+        self.evaluation_result = await self.task_api_client.run(
             'ditef_worker_genetic_individual_string',
             payload={
                 'genome': self.genome,
                 'target_string': self.configuration['target_string'],
             },
         )
-        self.correct_characters = result['correct_characters']
-        self.length_difference = result['length_difference']
         self.update_event.notify()
 
     def fitness(self) -> typing.Optional[float]:
         try:
-            return self.correct_characters - abs(self.length_difference) * 2
+            return self.evaluation_result['correct_characters'] - abs(self.evaluation_result['length_difference']) * 2
         except TypeError:
             return None
 

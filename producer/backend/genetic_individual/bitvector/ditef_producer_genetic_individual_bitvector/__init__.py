@@ -3,6 +3,7 @@ import asyncio
 import copy
 import datetime
 import json
+from pathlib import Path
 import random
 import textwrap
 import typing
@@ -38,8 +39,25 @@ class Individual:
         self.creation_type = creation_type
         self.genealogy_parents = []
         self.genealogy_children = []
-        self.sum: typing.Optional[int] = None
+        self.evaluation_result: typing.Optional[dict] = None
         self.update_event = ditef_producer_shared.event.BroadcastEvent()
+
+    @staticmethod
+    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration):
+        with open(individual_file, 'r') as f:
+            individual_data = json.loads(f.read())
+
+        Individual.individuals[individual_file.stem] = Individual(task_api_client,
+            configuration,
+            individual_file.stem,
+            individual_data['genome'],
+            individual_data['creation_type'])
+
+        Individual.individuals[individual_file.stem].genealogy_parents = individual_data['genealogy_parents']
+        Individual.individuals[individual_file.stem].genealogy_children = individual_data['genealogy_children']
+
+        if 'evaluation_result' in individual_data:
+            Individual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
     @staticmethod
     def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
@@ -110,15 +128,16 @@ class Individual:
         self.update_event.notify()
 
     async def evaluate(self):
-        self.sum = await self.task_api_client.run(
+        sum = await self.task_api_client.run(
             'ditef_worker_genetic_individual_bitvector',
             self.genome,
         )
+        self.evaluation_result = {'sum': sum}
         self.update_event.notify()
 
     def fitness(self) -> typing.Optional[float]:
-        if self.sum is not None:
-            return float(self.sum)
+        if self.evaluation_result is not None:
+            return float(self.evaluation_result['sum'])
 
     def api_url(self) -> str:
         return f'/genetic_individual_bitvector/api/{self.id}'

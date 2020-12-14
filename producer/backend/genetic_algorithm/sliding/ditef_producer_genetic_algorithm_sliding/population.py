@@ -1,7 +1,9 @@
 import asyncio
 import datetime
+import json
 import importlib
 import pandas
+from pathlib import Path
 import random
 
 import ditef_producer_shared.event
@@ -13,35 +15,38 @@ class Population:
 
     @staticmethod
     def configuration_values(individual_type: str) -> dict:
-        return {
-            'minimum_amount_of_members': {
-                'help': 'Minimum amount of members in the population',
-                'default': 15,
-            },
-            'maximum_amount_of_members': {
-                'help': 'Maximum amount of members in the population',
-                'default': 25,
-            },
-            'migration_weight': {
-                'help': 'Weight for choosing migration as a random operation',
-                'default': 0.005,
-            },
-            'clone_weight': {
-                'help': 'Weight for choosing cloning with mutations as a random operation',
-                'default': 0.25,
-            },
-            'random_individual_weight': {
-                'help': 'Weight for choosing the creation of a random individual as a random operation',
-                'default': 0.25,
-            },
-            'cross_over_individual_weight': {
-                'help': 'Weight for choosing cross over to create a child from two parents as a random operation',
-                'default': 0.5,
-            },
-            **importlib.import_module(
-                individual_type,
-            ).Individual.configuration_values(),
-        }
+        if Population.loaded_default_configuration is not None:
+            return Population.loaded_default_configuration
+        else:
+            return {
+                'minimum_amount_of_members': {
+                    'help': 'Minimum amount of members in the population',
+                    'default': 15,
+                },
+                'maximum_amount_of_members': {
+                    'help': 'Maximum amount of members in the population',
+                    'default': 25,
+                },
+                'migration_weight': {
+                    'help': 'Weight for choosing migration as a random operation',
+                    'default': 0.005,
+                },
+                'clone_weight': {
+                    'help': 'Weight for choosing cloning with mutations as a random operation',
+                    'default': 0.25,
+                },
+                'random_individual_weight': {
+                    'help': 'Weight for choosing the creation of a random individual as a random operation',
+                    'default': 0.25,
+                },
+                'cross_over_individual_weight': {
+                    'help': 'Weight for choosing cross over to create a child from two parents as a random operation',
+                    'default': 0.5,
+                },
+                **importlib.import_module(
+                    individual_type,
+                ).Individual.configuration_values(),
+            }
 
     @staticmethod
     def purge_dead_populations():
@@ -52,6 +57,7 @@ class Population:
         ]
 
     populations = []
+    loaded_default_configuration = None
 
     def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict):
         self.individual_type = individual_type
@@ -169,6 +175,16 @@ class Population:
         self.members_event.notify()
         await crossed_over_individual.evaluate()
         self.members_event.notify()
+
+    def load_member_from_static_dict(self, individual_id):
+        individual = importlib.import_module(
+            self.individual_type,
+        ).Individual.individuals[individual_id]
+        self.members.append(individual)
+        self.members_event.notify()
+        if individual.evaluation_result is None:
+            asyncio.ensure_future(individual.evaluate())
+            self.members_event.notify()
 
     def ensure_maximum_amount_of_members(self):
         if len(self.members) > self.configuration['maximum_amount_of_members']:
