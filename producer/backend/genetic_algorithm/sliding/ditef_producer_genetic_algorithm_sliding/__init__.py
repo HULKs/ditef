@@ -50,6 +50,7 @@ async def async_main(**arguments):
             app['arguments']['individual_type'],
         ).Individual.api_add_routes(
             app,
+            app['arguments']['individual_type'],
             app['arguments']['minimum_websocket_interval'],
         )
 

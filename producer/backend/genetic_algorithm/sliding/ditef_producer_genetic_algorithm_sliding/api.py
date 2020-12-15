@@ -163,7 +163,7 @@ class Api:
                         'members': {
                             member.id: {
                                 'fitness': member.fitness(),
-                                'url': member.api_url(),
+                                'url': member.api_url(member.individual_type()),
                             }
                             for member in population.members
                         },
