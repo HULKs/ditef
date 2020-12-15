@@ -188,7 +188,7 @@ class Population:
         self.members.append(individual)
         self.members_event.notify()
         if individual.evaluation_result is None:
-            self.loading_queue.append(individual.evaluate)
+            self.loading_queue.append(individual)
 
     def ensure_maximum_amount_of_members(self):
         if len(self.members) > self.configuration['maximum_amount_of_members']:
@@ -258,8 +258,9 @@ class Population:
     async def run(self):
         try:
             while self.loading_queue:
-                queued_evaluation, *self.loading_queue = self.loading_queue
-                await queued_evaluation()
+                individual, *self.loading_queue = self.loading_queue
+                await individual.evaluate()
+                individual.write_to_file(self.state_path/'individuals')
                 self.members_event.notify()
             while True:
                 await self.ensure_minimum_amount_of_members()
