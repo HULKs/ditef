@@ -44,6 +44,7 @@ class Algorithm:
         for task in self.populations[population_index]['tasks']:
             task.cancel()
         await asyncio.wait(self.populations[population_index]['tasks'])
+        (self.state_path/'populations'/(self.populations[population_index]['population'].id + '.json')).unlink()
         del self.populations[population_index]
         self.metric_event.notify()
 
