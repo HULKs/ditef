@@ -1,16 +1,8 @@
-import aiohttp.web
-import asyncio
 import copy
-import datetime
-import json
-from pathlib import Path
 import random
-import textwrap
 import typing
 import uuid
 
-import ditef_producer_shared.event
-import ditef_producer_shared.json
 from ditef_producer_shared.individual import AbstractIndividual
 import ditef_router.api_client
 
@@ -32,24 +24,6 @@ class Individual(AbstractIndividual):
                 'default': 10,
             },
         }
-
-    @staticmethod
-    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration):
-        with open(individual_file, 'r') as f:
-            individual_data = json.loads(f.read())
-
-        Individual.individuals[individual_file.stem] = Individual(task_api_client,
-            configuration,
-            individual_file.stem,
-            individual_data['genome'],
-            individual_data['creation_type'],
-        )
-
-        Individual.individuals[individual_file.stem].genealogy_parents = individual_data['genealogy_parents']
-        Individual.individuals[individual_file.stem].genealogy_children = individual_data['genealogy_children']
-
-        if 'evaluation_result' in individual_data:
-            AbstractIndividual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
     @staticmethod
     def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':

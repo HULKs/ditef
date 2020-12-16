@@ -54,7 +54,11 @@ class Algorithm:
         for individual_file in (self.state_path/'individuals').glob('**/*.json'):
             importlib.import_module(
                 self.individual_type,
-            ).Individual.load_individual_to_static_dict(individual_file, self.task_api_client, Population.configuration_values(self.individual_type))
+            ).Individual.load_individual_to_static_dict(
+                individual_file,
+                self.task_api_client,
+                Population.configuration_values(self.individual_type),
+                importlib.import_module(self.individual_type).Individual)
         for population_file in (self.state_path/'populations').glob('**/*.json'):
             with open(population_file, 'r') as f:
                 population_data = json.loads(f.read())

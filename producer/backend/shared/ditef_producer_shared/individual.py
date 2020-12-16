@@ -1,15 +1,10 @@
 import abc
 import aiohttp.web
 import asyncio
-import copy
 import datetime
 import json
 from pathlib import Path
-import random
-import string
-import textwrap
 import typing
-import uuid
 
 import ditef_producer_shared.event
 import ditef_producer_shared.json
@@ -38,9 +33,23 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
     def individual_type(self) -> str:
         pass
 
-    @abc.abstractmethod
-    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration):
-        pass
+    @staticmethod
+    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_constructor):
+        with open(individual_file, 'r') as f:
+            individual_data = json.loads(f.read())
+
+        AbstractIndividual.individuals[individual_file.stem] = individual_constructor(task_api_client,
+            configuration,
+            individual_file.stem,
+            individual_data['genome'],
+            individual_data['creation_type'],
+        )
+
+        AbstractIndividual.individuals[individual_file.stem].genealogy_parents = individual_data['genealogy_parents']
+        AbstractIndividual.individuals[individual_file.stem].genealogy_children = individual_data['genealogy_children']
+
+        if 'evaluation_result' in individual_data:
+            AbstractIndividual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
     def write_to_file(self, individuals_path: Path):
         data = {
@@ -119,7 +128,6 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
     @staticmethod
     def api_add_routes(app: aiohttp.web.Application, individual_type: str, minimum_websocket_interval: int):
         AbstractIndividual.minimum_websocket_interval = minimum_websocket_interval
-        print('dafuq:', individual_type)
         app.add_routes([
             aiohttp.web.get(
                 r'/genetic_individual_{individual_type}/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
