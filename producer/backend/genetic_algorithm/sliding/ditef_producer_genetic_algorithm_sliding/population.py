@@ -94,6 +94,7 @@ class Population:
             ).Individual.random(
                 self.task_api_client,
                 self.configuration,
+                self.state_path/'individuals',
             )
             await self.finalize_new_member_operation(random_individual)
             self.append_to_history()
@@ -101,7 +102,6 @@ class Population:
             self.metric_event.notify()
 
     async def finalize_new_member_operation(self, individual):
-        individual.write_to_file(self.state_path/'individuals')
         self.members.append(individual)
         self.write_to_file()
         self.members_event.notify()
@@ -144,6 +144,7 @@ class Population:
             self.task_api_client,
             self.configuration,
             'migrant',
+            self.state_path/'individuals',
         )
         await self.finalize_new_member_operation(migrated_individual)
 
@@ -155,6 +156,7 @@ class Population:
             self.task_api_client,
             self.configuration,
             'clone',
+            self.state_path/'individuals',
         )
         cloned_individual.mutate()
         await self.finalize_new_member_operation(cloned_individual)
@@ -165,6 +167,7 @@ class Population:
         ).Individual.random(
             self.task_api_client,
             self.configuration,
+            self.state_path/'individuals',
         )
         await self.finalize_new_member_operation(random_individual)
 
@@ -177,6 +180,7 @@ class Population:
             parent_b,
             self.task_api_client,
             self.configuration,
+            self.state_path/'individuals',
         )
         crossed_over_individual.mutate()
         await self.finalize_new_member_operation(crossed_over_individual)

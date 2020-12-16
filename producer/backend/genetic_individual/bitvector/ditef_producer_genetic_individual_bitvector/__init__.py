@@ -1,4 +1,5 @@
 import copy
+from pathlib import Path
 import random
 import typing
 import uuid
@@ -26,7 +27,7 @@ class Individual(AbstractIndividual):
         }
 
     @staticmethod
-    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
         '''Generates a new random individual'''
 
         individual_id = str(uuid.uuid4())
@@ -40,11 +41,12 @@ class Individual(AbstractIndividual):
             ],
             'random',
         )
+        Individual.individuals[individual_id].write_to_file(individuals_path)
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, individuals_path: Path) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -56,13 +58,15 @@ class Individual(AbstractIndividual):
             creation_type,
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
+        Individual.individuals[individual_id].write_to_file(individuals_path)
         parent.genealogy_children.append(individual_id)
+        parent.write_to_file(individuals_path)
         parent.update_event.notify()
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())
@@ -80,9 +84,12 @@ class Individual(AbstractIndividual):
             parent_a.id,
             parent_b.id,
         ]
+        Individual.individuals[individual_id].write_to_file(individuals_path)
         parent_a.genealogy_children.append(individual_id)
+        parent_a.write_to_file(individuals_path)
         parent_a.update_event.notify()
         parent_b.genealogy_children.append(individual_id)
+        parent_b.write_to_file(individuals_path)
         parent_b.update_event.notify()
 
         return Individual.individuals[individual_id]
