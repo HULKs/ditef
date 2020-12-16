@@ -3,7 +3,7 @@ import random
 import typing
 import uuid
 
-from ditef_producer_shared.individual import AbstractIndividual
+from ditef_producer_shared.genetic_individual import AbstractIndividual
 import ditef_router.api_client
 
 
