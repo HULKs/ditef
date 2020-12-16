@@ -5,6 +5,7 @@ from pathlib import Path
 import uuid
 
 import ditef_producer_shared.event
+import ditef_producer_shared.json
 import ditef_router.api_client
 
 from .population import Population
@@ -83,5 +84,7 @@ class Algorithm:
         self.state_path.mkdir(parents=True, exist_ok=True)
         (self.state_path/'individuals').mkdir(parents=True, exist_ok=True)
         (self.state_path/'populations').mkdir(parents=True, exist_ok=True)
-        with (self.state_path/'configuration.json').open('w') as f:
-            json.dump(Population.configuration_values(self.individual_type), f, indent=4)
+        ditef_producer_shared.json.dump_complete(
+            Population.configuration_values(self.individual_type),
+            self.state_path/'configuration.json'
+        )

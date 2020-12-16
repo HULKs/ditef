@@ -7,6 +7,7 @@ from pathlib import Path
 import random
 
 import ditef_producer_shared.event
+import ditef_producer_shared.json
 import ditef_router.api_client
 import weakref
 
@@ -114,8 +115,7 @@ class Population:
             'members': [member.id for member in self.members],
             'configuration': self.configuration,
         }
-        with open(self.state_path/'populations'/(self.id + '.json'), 'w') as f:
-            json.dump(data, f, indent=4)
+        ditef_producer_shared.json.dump_complete(data, self.state_path/'populations'/(self.id + '.json'))
 
     async def random_operation(self):
         Population.purge_dead_populations()

@@ -76,8 +76,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         }
         if self.evaluation_result is not None:
             data['evaluation_result'] = self.evaluation_result
-        with open((individuals_path/(self.id + '.json')), 'w') as f:
-            json.dump(data, f, indent=4)
+        ditef_producer_shared.json.dump_complete(data, individuals_path/(self.id + '.json'))
 
     @abc.abstractmethod
     def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
