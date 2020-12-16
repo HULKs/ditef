@@ -101,8 +101,8 @@ class Population:
             self.metric_event.notify()
 
     async def finalize_new_member_operation(self, individual):
-        self.members.append(individual)
         individual.write_to_file(self.state_path/'individuals')
+        self.members.append(individual)
         self.write_to_file()
         self.members_event.notify()
         await individual.evaluate()
