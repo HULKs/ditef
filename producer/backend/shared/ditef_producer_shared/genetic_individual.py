@@ -35,8 +35,24 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
 
     @staticmethod
     def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_constructor):
+        # print('loading individual from', str(individual_file))
         with open(individual_file, 'r') as f:
-            individual_data = json.loads(f.read())
+            file_content = f.read()
+
+        if len(file_content) == 0:
+            print('found empty file:', individual_file)
+            return
+
+        try:
+            individual_data = json.loads(file_content)
+        except Exception as e:
+            print('could not parse', str(individual_file))
+            return
+
+        for required_key in ['genome', 'creation_type', 'genealogy_parents', 'genealogy_children']:
+            if not required_key in individual_data:
+                print('missing key:', required_key, 'in file:', individual_file)
+                return
 
         AbstractIndividual.individuals[individual_file.stem] = individual_constructor(task_api_client,
             configuration,

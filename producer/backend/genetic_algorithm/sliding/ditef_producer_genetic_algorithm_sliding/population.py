@@ -186,6 +186,9 @@ class Population:
         await self.finalize_new_member_operation(crossed_over_individual)
 
     def load_member_from_static_dict(self, individual_id):
+        if individual_id not in importlib.import_module(self.individual_type).Individual.individuals:
+            print('could not find individual', individual_id, 'in dict')
+            return
         individual = importlib.import_module(
             self.individual_type,
         ).Individual.individuals[individual_id]
