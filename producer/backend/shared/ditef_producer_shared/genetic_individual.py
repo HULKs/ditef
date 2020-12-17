@@ -42,13 +42,11 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         if len(file_content) == 0:
             print('found empty file:', individual_file)
             return
-
         try:
             individual_data = json.loads(file_content)
         except Exception as e:
-            print('could not parse', str(individual_file))
+            print('could not parse:', individual_file)
             return
-
         for required_key in ['genome', 'creation_type', 'genealogy_parents', 'genealogy_children']:
             if not required_key in individual_data:
                 print('missing key:', required_key, 'in file:', individual_file)

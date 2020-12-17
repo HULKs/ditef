@@ -50,8 +50,23 @@ class Algorithm:
         self.metric_event.notify()
 
     def load_state(self):
-        with open(self.state_path/'configuration.json', 'r') as f:
-            Population.loaded_default_configuration = json.loads(f.read())
+        # load configuration.json
+        configuration_file = self.state_path/'configuration.json'
+        with open(configuration_file, 'r') as f:
+            file_content = f.read()
+        if len(file_content) == 0:
+            raise IOError(f'empty file: {configuration_file}')
+        try:
+            configuration_data = json.loads(file_content)
+        except Exception as e:
+            raise SyntaxError(f'could not parse: {configuration_file}')
+        for required_key in Population.configuration_values(self.individual_type):
+            if not required_key in configuration_data:
+                raise KeyError(f'missing key: {required_key} in file {configuration_file}')
+        Population.loaded_default_configuration = configuration_data
+
+        # load individuals (create dir if it does not exists)
+        (self.state_path/'individuals').mkdir(parents=True, exist_ok=True)
         for individual_file in (self.state_path/'individuals').glob('**/*.json'):
             importlib.import_module(
                 self.individual_type,
@@ -60,10 +75,39 @@ class Algorithm:
                 self.task_api_client,
                 Population.configuration_values(self.individual_type),
                 importlib.import_module(self.individual_type).Individual)
-        for population_file in (self.state_path/'populations').glob('**/*.json'):
-            with open(population_file, 'r') as f:
-                population_data = json.loads(f.read())
 
+        # load populations (create dir if it does not exists)
+        (self.state_path/'populations').mkdir(parents=True, exist_ok=True)
+        for population_file in (self.state_path/'populations').glob('**/*.json'):
+            # check population file
+            with open(population_file, 'r') as f:
+                file_content = f.read()
+            if len(file_content) == 0:
+                print('skipping population due to empty file:', population_file)
+                continue
+            try:
+                population_data = json.loads(file_content)
+            except Exception as e:
+                print('skipping population that could not be parse:', population_file)
+                continue
+            if not 'configuration' in population_data:
+                print('skipping population with missing configuration:', population_file)
+                continue
+            if not 'members' in population_data:
+                print('skipping population with missing members list:', population_file)
+                continue
+
+            # check population configuration
+            load_population = True
+            for required_key in Population.configuration_values(self.individual_type):
+                if not required_key in population_data['configuration']:
+                    print('missing configuration key:', required_key, 'in file:', population_file)
+                    load_population = False
+            if not load_population:
+                print('skipping population:', population_file)
+                continue
+
+            # create population
             new_population = Population(
                 self.individual_type,
                 self.task_api_client,
@@ -72,12 +116,18 @@ class Algorithm:
                 self.state_path,
                 population_file.stem
             )
+
+            # add members to population
             for member_id in population_data['members']:
-                new_population.load_member_from_static_dict(member_id)
+                if member_id in importlib.import_module(self.individual_type).Individual.individuals:
+                    new_population.load_member_from_static_dict(member_id)
+                else:
+                    print("could not load individual:", member_id)
             self.populations.append({
                 'population': new_population,
                 'tasks': [asyncio.create_task(new_population.run()) for _ in range(self.pending_individuals)],
             })
+
             self.metric_event.notify()
 
     def initialize_state(self):
