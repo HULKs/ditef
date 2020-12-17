@@ -26,6 +26,7 @@ def json_formatter_pretty(data):
 def json_formatter_compressed(data):
     return simplejson.dumps(data, ignore_nan=True, cls=NumpyAndNanEncoder)
 
+
 def dump_complete(data: dict, file: Path):
     def prevent_interrupt():
         with open(file, 'w') as f:
