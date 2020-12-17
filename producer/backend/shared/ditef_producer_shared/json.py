@@ -27,9 +27,9 @@ def json_formatter_compressed(data):
     return simplejson.dumps(data, ignore_nan=True, cls=NumpyAndNanEncoder)
 
 def dump_complete(data: dict, file: Path):
-    def prevert_interrupt():
+    def prevent_interrupt():
         with open(file, 'w') as f:
             simplejson.dump(data, f, indent=4)
-    thread = Thread(target=prevert_interrupt)
+    thread = Thread(target=prevent_interrupt)
     thread.start()
     thread.join()
