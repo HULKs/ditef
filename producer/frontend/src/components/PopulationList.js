@@ -57,10 +57,15 @@ const useStyles = makeStyles(theme => ({
 
 export default function PopulationList({ onConnectedChange }) {
   const classes = useStyles();
+  const [individualType, setIndividualType] = useState();
   const [initialConfiguration, setInitialConfiguration] = useState();
   const [currentMetrics, setCurrentMetrics] = useState();
   const onWebSocketMessage = useCallback((type, payload) => {
     switch (type) {
+      case "individual_type": {
+        setIndividualType(payload);
+        break;
+      }
       case "initial_configuration": {
         setInitialConfiguration(JSON.stringify(payload, null, 2));
         break;
@@ -82,6 +87,7 @@ export default function PopulationList({ onConnectedChange }) {
   );
   const [configuration, setConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const individualString = individualType ? individualType.substring('ditef_producer_genetic_individual_'.length).charAt(0).toUpperCase() + individualType.substring('ditef_producer_genetic_individual_'.length).slice(1) : "";
 
   useEffect(() => {
     setConfiguration(initialConfiguration);
@@ -115,7 +121,7 @@ export default function PopulationList({ onConnectedChange }) {
       </DialogActions>
     </Dialog>
     <Container className={classes.lastContainer}>
-      <Typography variant="h5" className={classes.headingSpacing}>Populations</Typography>
+<Typography variant="h5" className={classes.headingSpacing}>{individualString} Populations</Typography>
       <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
         <Table>
           <TableHead>

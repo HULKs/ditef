@@ -119,6 +119,7 @@ export default function Population({ onConnectedChange }) {
   );
   const [currentConfiguration, setCurrentConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const individualString = individualType ? individualType.substring('ditef_producer_genetic_individual_'.length).charAt(0).toUpperCase() + individualType.substring('ditef_producer_genetic_individual_'.length).slice(1) : "";
 
   useEffect(() => {
     setCurrentConfiguration(configuration);
@@ -217,7 +218,7 @@ export default function Population({ onConnectedChange }) {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell className={classes.noWrap}>Individual</TableCell>
+              <TableCell className={classes.noWrap}>{individualString} Individual</TableCell>
               <TableCell className={classes.noWrap}>Fitness</TableCell>
             </TableRow>
           </TableHead>

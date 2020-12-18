@@ -54,7 +54,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
             except Exception:
                 print(f'could not parse: {individual_file}')
                 return
-        for required_key in ['genome', 'creation_type', 'genealogy_parents', 'genealogy_children']:
+        for required_key in ['genome', 'configuration', 'creation_type', 'genealogy_parents', 'genealogy_children']:
             if not required_key in individual_data:
                 print('missing key:', required_key, 'in file:', individual_file)
                 return
