@@ -79,6 +79,7 @@ def run(payload):
                                                                   configuration)
 
     except Exception as e:
+        print(e)
         run_result['exception'] = str(e)
 
     tmp_model_path.unlink()

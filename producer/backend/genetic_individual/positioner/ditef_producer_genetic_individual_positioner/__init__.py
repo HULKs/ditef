@@ -1,17 +1,17 @@
-import aiohttp.web
-import asyncio
 import copy
-import datetime
+from pathlib import Path
 import random
 import typing
 import uuid
 
-import ditef_producer_shared.event
-import ditef_producer_shared.json
+from ditef_producer_shared.genetic_individual import AbstractIndividual
 import ditef_router.api_client
 
 
-class Individual:
+class Individual(AbstractIndividual):
+
+    def individual_type(self) -> str:
+        return('positioner')
 
     @staticmethod
     def configuration_values() -> dict:
@@ -200,24 +200,8 @@ class Individual:
             },
         }
 
-    individuals = {}
-
-    def __init__(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict, id: str, genome: dict, creation_type: str):
-        self.task_api_client = task_api_client
-        self.configuration = configuration
-        self.id = id
-        self.genome = genome
-        self.creation_type = creation_type
-        self.genealogy_parents = []
-        self.genealogy_children = []
-        self.accuracy: typing.Optional[float] = None
-        self.compiledNN_result: typing.Optional[float] = None
-        self.computational_cost: typing.Optional[float] = None
-        self.evaluation_result: typing.Optional[dict] = None
-        self.update_event = ditef_producer_shared.event.BroadcastEvent()
-
     @staticmethod
-    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
         '''Generates a new random individual'''
 
         individual_id = str(uuid.uuid4())
@@ -272,10 +256,12 @@ class Individual:
             genome,
             'random',
         )
+        Individual.individuals[individual_id].write_to_file(individuals_path)
+
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, individuals_path: Path) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -287,13 +273,15 @@ class Individual:
             creation_type,
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
+        Individual.individuals[individual_id].write_to_file(individuals_path)
         parent.genealogy_children.append(individual_id)
+        parent.write_to_file(individuals_path)
         parent.update_event.notify()
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())
@@ -325,9 +313,12 @@ class Individual:
             parent_a.id,
             parent_b.id,
         ]
+        Individual.individuals[individual_id].write_to_file(individuals_path)
         parent_a.genealogy_children.append(individual_id)
+        parent_a.write_to_file(individuals_path)
         parent_a.update_event.notify()
         parent_b.genealogy_children.append(individual_id)
+        parent_b.write_to_file(individuals_path)
         parent_b.update_event.notify()
 
         return Individual.individuals[individual_id]
@@ -386,7 +377,6 @@ class Individual:
         self.update_event.notify()
 
     async def evaluate(self):
-        self.update_computational_cost()
         self.evaluation_result = await self.task_api_client.run(
             'ditef_worker_genetic_individual_neuralnet',
             {
@@ -395,101 +385,17 @@ class Individual:
                 'configuration': self.configuration
             }
         )
-        self.accuracy = self.evaluation_result['accuracy']
-        self.compiledNN_result = self.evaluation_result['compiledNN_result']
+        self.evaluation_result['computational_cost'] = self.computational_cost()
         self.update_event.notify()
 
     def fitness(self) -> typing.Optional[float]:
-        if self.accuracy is None:
+        if self.evaluation_result is None:
             return None
         if 'exception' in self.evaluation_result:
             return -1
-        if self.compiledNN_result > self.configuration['compiledNN_threshold']:
+        if self.evaluation_result['compiledNN_result'] > self.configuration['compiledNN_threshold']:
             return 0
-        return self.accuracy - (self.computational_cost * self.configuration['computational_cost_factor'])
-
-    def api_url(self) -> str:
-        return f'/genetic_individual_positioner/api/{self.id}'
-
-    async def api_write_update_to_websocket(self, websocket: aiohttp.web.WebSocketResponse):
-        await websocket.send_json(
-            data={
-                'genome': self.genome,
-                'configuration': self.configuration,
-                'computational_cost': self.computational_cost,
-                'evaluation_result': self.evaluation_result,
-                'fitness': self.fitness(),
-                'creation_type': self.creation_type,
-                'genealogy_parents': {
-                    parent_id: {
-                        'fitness': Individual.individuals[parent_id].fitness(),
-                        'url': Individual.individuals[parent_id].api_url(),
-                    }
-                    for parent_id in self.genealogy_parents
-                },
-                'genealogy_children': {
-                    child_id: {
-                        'fitness': Individual.individuals[child_id].fitness(),
-                        'url': Individual.individuals[child_id].api_url(),
-                    }
-                    for child_id in self.genealogy_children
-                },
-            },
-            dumps=ditef_producer_shared.json.json_formatter_compressed,
-        )
-
-    async def subscribe_to_update(self, websocket: aiohttp.web.WebSocketResponse):
-        with self.update_event.subscribe() as subscription:
-            while True:
-                await self.api_write_update_to_websocket(websocket)
-                last_websocket_message = datetime.datetime.now()
-                await subscription.wait()
-                seconds_spent_in_wait = (
-                    datetime.datetime.now() - last_websocket_message
-                ).total_seconds()
-                if seconds_spent_in_wait < Individual.minimum_websocket_interval:
-                    await asyncio.sleep(Individual.minimum_websocket_interval - seconds_spent_in_wait)
-
-    minimum_websocket_interval = 0
-
-    @staticmethod
-    def api_add_routes(app: aiohttp.web.Application, minimum_websocket_interval: int):
-        Individual.minimum_websocket_interval = minimum_websocket_interval
-        app.add_routes([
-            aiohttp.web.get(
-                r'/genetic_individual_positioner/api/{individual_id:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}',
-                Individual.api_handle_websocket,
-            ),
-        ])
-
-    @staticmethod
-    async def api_handle_websocket(request: aiohttp.web.Request):
-        websocket = aiohttp.web.WebSocketResponse(heartbeat=10)
-        await websocket.prepare(request)
-
-        individual_id = request.match_info['individual_id']
-        individual: Individual = Individual.individuals[individual_id]
-
-        update_subscription_task = asyncio.create_task(
-            individual.subscribe_to_update(
-                websocket,
-            ),
-        )
-
-        await individual.api_write_update_to_websocket(websocket)
-
-        try:
-            async for message in websocket:
-                assert message.type == aiohttp.web.WSMsgType.TEXT
-                print('Message not handled:', message)
-        finally:
-            update_subscription_task.cancel()
-            try:
-                await update_subscription_task
-            except asyncio.CancelledError:
-                pass
-
-        return websocket
+        return self.evaluation_result['accuracy'] - (self.computational_cost() * self.configuration['computational_cost_factor'])
 
     def mutate_change_training_epochs(self):
         '''Changes training epochs to a new random value near the previous'''
@@ -641,7 +547,7 @@ class Individual:
                 size /= self.genome['convolution_layers'][layer_index]['pooling_size']
         return size
 
-    def update_computational_cost(self):
+    def computational_cost(self):
         # TODO: Wait for and then implement https://github.com/tensorflow/tensorflow/issues/32809 ?
         # TODO: Wait for and then implement https://github.com/tensorflow/tensorflow/issues/39834 ?
 
@@ -667,4 +573,4 @@ class Individual:
 
         cost += previous_layer_neurons * self.configuration['final_layer_neurons']
 
-        self.computational_cost = cost
+        return cost

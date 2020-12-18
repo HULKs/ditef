@@ -260,7 +260,6 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
   const theme = useTheme();
   const [genome, setGenome] = useState();
   const [configuration, setConfiguration] = useState();
-  const [computationalCost, setComputationalCost] = useState();
   const [evaluationResult, setEvaluationResult] = useState();
   const [fitness, setFitness] = useState();
   const [creationType, setCreationType] = useState();
@@ -274,10 +273,6 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
       }
       case "configuration": {
         setConfiguration(payload);
-        break;
-      }
-      case "computational_cost": {
-        setComputationalCost(payload);
         break;
       }
       case "evaluation_result": {
@@ -365,8 +360,6 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
         }
         {//configuration && <pre>{JSON.stringify(configuration,null,2)}</pre>
         }
-        {//computationalCost && <pre>{JSON.stringify(computationalCost,null,2)}</pre>
-        }
         {//evaluationResult && <pre>{JSON.stringify(evaluationResult,null,2)}</pre>
         }
       </Paper>
@@ -384,10 +377,10 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
         <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
           <Typography variant="h5" className={classes.headingSpacing}>Computational Cost</Typography>
           <Paper elevation={3} className={classes.fitnessPaper}>
-            <pre>{configuration && computationalCost &&
-              "            Raw cost: " + computationalCost +
+            <pre>{configuration && evaluationResult &&
+              "            Raw cost: " + evaluationResult.computational_cost +
               "\n         Cost factor: " + configuration.computational_cost_factor +
-              "\nFitness contribution: " + (-configuration.computational_cost_factor * computationalCost)}</pre>
+              "\nFitness contribution: " + (-configuration.computational_cost_factor * evaluationResult.computational_cost)}</pre>
           </Paper>
           <Typography variant="h5" className={classes.headingSpacing}>CompiledNN Check</Typography>
           <Paper elevation={3} className={classes.fitnessPaper}>

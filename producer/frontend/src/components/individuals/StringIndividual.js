@@ -65,6 +65,12 @@ export default function StringIndividual({ url, onConnectedChange }) {
         setGenome(payload);
         break;
       }
+      case "configuration": {
+        break;
+      }
+      case "evaluation_result": {
+        break;
+      }
       case "fitness": {
         setFitness(payload);
         break;
