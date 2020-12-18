@@ -11,7 +11,7 @@ import ditef_router.api_client
 class Individual(AbstractIndividual):
 
     def individual_type(self) -> str:
-        return('positioner')
+        return('ball_detection_cnn')
 
     @staticmethod
     def configuration_values() -> dict:

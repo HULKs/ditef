@@ -228,7 +228,7 @@ export default function Population({ onConnectedChange }) {
                 <TableCell className={classes.noWrap}>
                   <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>{memberId}</Link>
                 </TableCell>
-                <TableCell className={classes.noWrap}>{member.fitness ? member.fitness : "N/A"}</TableCell>
+                <TableCell className={classes.noWrap}>{member.fitness === null ? "waiting for evaluation" :member.fitness}</TableCell>
               </TableRow>
             )}
             {Object.keys(members).length === 0 &&

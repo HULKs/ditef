@@ -255,7 +255,7 @@ function createArchitectureVisualization(genome, configuration) {
   return svgCoponents;
 }
 
-export default function PositionerIndividual({ url, onConnectedChange }) {
+export default function BallDetectionCNNIndividual({ url, onConnectedChange }) {
   const classes = useStyles();
   const theme = useTheme();
   const [genome, setGenome] = useState();
@@ -388,7 +388,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
               "CompiledNN average distance: " + evaluationResult.compiledNN_result +
               "\n Average distance threshold: " + configuration.compiledNN_threshold +
               "\nDistance is below threshold: " + (evaluationResult.compiledNN_result <= configuration.compiledNN_threshold) :
-              "waiting for evaluation"}</pre>
+              ""}</pre>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
@@ -409,7 +409,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
             </Chart>
           </Paper>}
           {!evaluationResult && <Paper elevation={3} className={classes.fitnessPaper}>
-              <pre>waiting for evaluation...</pre>
+              <pre></pre>
           </Paper>}
         </Grid>
       </Grid>
@@ -430,7 +430,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
                 {genealogyParents && Object.entries(genealogyParents).sort(([, parentA], [, parentB]) => parentB.fitness - parentA.fitness).map(([parentId, parent]) =>
                   <TableRow key={parentId}>
                     <TableCell className={classes.noWrap}>
-                      <Link to={`/individual/${parentId}?type=ditef_producer_genetic_individual_positioner&url=${encodeURIComponent(parent.url)}`}>{parentId}</Link>
+                      <Link to={`/individual/${parentId}?type=ditef_producer_genetic_individual_ball_detection_cnn&url=${encodeURIComponent(parent.url)}`}>{parentId}</Link>
                     </TableCell>
                     <TableCell className={classes.noWrap}>{parent.fitness ? parent.fitness : "N/A"}</TableCell>
                   </TableRow>
@@ -460,7 +460,7 @@ export default function PositionerIndividual({ url, onConnectedChange }) {
                 {genealogyChildren && Object.entries(genealogyChildren).sort(([, childA], [, childB]) => childB.fitness - childA.fitness).map(([childId, child]) =>
                   <TableRow key={childId}>
                     <TableCell className={classes.noWrap}>
-                      <Link to={`/individual/${childId}?type=ditef_producer_genetic_individual_positioner&url=${encodeURIComponent(child.url)}`}>{childId}</Link>
+                      <Link to={`/individual/${childId}?type=ditef_producer_genetic_individual_ball_detection_cnn&url=${encodeURIComponent(child.url)}`}>{childId}</Link>
                     </TableCell>
                     <TableCell className={classes.noWrap}>{child.fitness ? child.fitness : "N/A"}</TableCell>
                   </TableRow>
