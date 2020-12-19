@@ -368,7 +368,7 @@ export default function BallDetectionCNNIndividual({ url, onConnectedChange }) {
       <Typography variant="h5" className={classes.headingSpacing}>Fitness</Typography>
       <Paper elevation={3} className={classes.fitnessPaper}>
         <Typography className={classes.fitness}>
-          {evaluationResult ? fitness : "waiting for evaluation"}
+          {fitness === null ? "waiting for evaluation" :fitness}
         </Typography>
       </Paper>
     </Container>
@@ -432,7 +432,7 @@ export default function BallDetectionCNNIndividual({ url, onConnectedChange }) {
                     <TableCell className={classes.noWrap}>
                       <Link to={`/individual/${parentId}?type=ditef_producer_genetic_individual_ball_detection_cnn&url=${encodeURIComponent(parent.url)}`}>{parentId}</Link>
                     </TableCell>
-                    <TableCell className={classes.noWrap}>{parent.fitness ? parent.fitness : "N/A"}</TableCell>
+                    <TableCell className={classes.noWrap}>{parent.fitness === null ? "waiting for evaluation" : parent.fitness}</TableCell>
                   </TableRow>
                 )}
                 {(!genealogyParents || Object.keys(genealogyParents).length === 0) &&
@@ -462,7 +462,7 @@ export default function BallDetectionCNNIndividual({ url, onConnectedChange }) {
                     <TableCell className={classes.noWrap}>
                       <Link to={`/individual/${childId}?type=ditef_producer_genetic_individual_ball_detection_cnn&url=${encodeURIComponent(child.url)}`}>{childId}</Link>
                     </TableCell>
-                    <TableCell className={classes.noWrap}>{child.fitness ? child.fitness : "N/A"}</TableCell>
+                    <TableCell className={classes.noWrap}>{child.fitness === null ? "waiting for evaluation" : child.fitness}</TableCell>
                   </TableRow>
                 )}
                 {(!genealogyChildren || Object.keys(genealogyChildren).length === 0) &&
