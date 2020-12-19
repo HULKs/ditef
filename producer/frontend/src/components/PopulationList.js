@@ -147,11 +147,11 @@ export default function PopulationList({ onConnectedChange }) {
                 <TableCell className={classes.noWrap}>{populationMetrics.amount_of_members}</TableCell>
                 <TableCell className={classes.noWrap}>{populationMetrics.amount_of_evaluated_members}</TableCell>
                 <TableCell className={classes.noWrap}>{populationMetrics.amount_of_unevaluated_members}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_minimum ? populationMetrics.fitness_minimum.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_maximum ? populationMetrics.fitness_maximum.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_median ? populationMetrics.fitness_median.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_mean ? populationMetrics.fitness_mean.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_standard_deviation ? populationMetrics.fitness_standard_deviation.toFixed(2) : "N/A"}</TableCell>
+                <TableCell className={classes.noWrap}>{populationMetrics.fitness_minimum === null ? "waiting for evaluation" : populationMetrics.fitness_minimum.toFixed(2)}</TableCell>
+                <TableCell className={classes.noWrap}>{populationMetrics.fitness_maximum === null ? "waiting for evaluation" : populationMetrics.fitness_maximum.toFixed(2)}</TableCell>
+                <TableCell className={classes.noWrap}>{populationMetrics.fitness_median === null ? "waiting for evaluation" : populationMetrics.fitness_median.toFixed(2)}</TableCell>
+                <TableCell className={classes.noWrap}>{populationMetrics.fitness_mean === null ? "waiting for evaluation" : populationMetrics.fitness_mean.toFixed(2)}</TableCell>
+                <TableCell className={classes.noWrap}>{populationMetrics.fitness_standard_deviation === null ? "waiting for evaluation" : populationMetrics.fitness_standard_deviation.toFixed(2)}</TableCell>
                 <TableCell className={classes.noWrap}>
                   <Button onClick={() => send("remove_population", { population_index: populationId })}>Remove</Button>
                 </TableCell>
