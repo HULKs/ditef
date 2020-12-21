@@ -315,7 +315,7 @@ def compiledNN_average_distance(model, model_path, verification_dataset, configu
         mean_squared_error = numpy.square(
             predictions_tensorflow - predictions_compiled_nn,
         ).mean()
-        if numpy.isnan(mean_squared_error):
+        if numpy.isnan(mean_squared_error) or numpy.isinf(mean_squared_error):
             raise RuntimeError('CompiledNN check mean squared error was NaN')
         print('CompiledNN check finished')
         return float(mean_squared_error)
