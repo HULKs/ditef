@@ -2,6 +2,10 @@ import tensorflow as tf
 import pathlib
 import subprocess
 import json
+import PyCompiledNN
+import numpy
+import multiprocessing
+import multiprocessing.sharedctypes
 
 
 def run(payload):
@@ -259,41 +263,51 @@ def get_dataset(tfr_ds, batch_size, nnType, data_size, augment_params):
 
 
 def compiledNN_average_distance(model, model_path, verification_dataset, configuration):
-    print('compiledNN check start')
-    verification_dataset_size = sum(1 for _ in verification_dataset)
-    model_predictions = model.predict(verification_dataset.batch(verification_dataset_size))
-
-    compiled_nn_process = subprocess.Popen(
-        args=[configuration['compiledNN_predicter'], model_path],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
+    print('CompiledNN check start')
+    predictions_tensorflow = model.predict(
+        verification_dataset.batch(configuration['batch_size']),
     )
 
-    verification_string = '\n'.join([
-        json.dumps(sample.numpy().ravel().tolist())
+    def execute(configuration: dict, batched_verification_dataset: numpy.ndarray, result_type: str, result_shape: tuple, result: multiprocessing.sharedctypes.Array, success: multiprocessing.Value):
+        model = PyCompiledNN.Model(model_path)
+        nn = PyCompiledNN.CompiledNN()
+        nn.compile(model)
+        predictions_compiled_nn = numpy.frombuffer(
+            buffer=result,
+            dtype=result_type,
+        ).reshape(result_shape)
+        for index, sample in enumerate(batched_verification_dataset):
+            numpy.copyto(nn.input(0), sample, casting='no')
+            nn.apply()
+            predictions_compiled_nn[index] = nn.output(0)
+        success.value = 1
+
+    success = multiprocessing.Value('b', 0, lock=False)
+    batched_verification_dataset = numpy.array([
+        sample.numpy()
         for sample in verification_dataset
     ])
-
-    compiled_nn_output, compiled_nn_errors = compiled_nn_process.communicate(
-        input=verification_string.encode('utf-8'),
+    result = multiprocessing.Array(
+        typecode_or_type=predictions_tensorflow.dtype.char,
+        size_or_initializer=int(numpy.product(predictions_tensorflow.shape)),
+        lock=False,
     )
-
-    if compiled_nn_errors is not None:
-        raise RuntimeError(compiled_nn_errors)
-
-    distance = 0
-    value_counter = 0
-    for model_prediction, compiled_nn_prediction in zip(model_predictions, compiled_nn_output.splitlines()):
-        for model_value, compiled_nn_value in zip(model_prediction, json.loads(compiled_nn_prediction)):
-            value_counter += 1
-            if compiled_nn_value is None: #TODO: investigate this / log error
-                print('compiled_nn_value is None...')
-                #return 100.0
-            distance += abs(model_value - compiled_nn_value)
-
-    if value_counter == 0: #TODO: investigate this / log error
-        print('compiledNN value_counter == 0...')
-        #return 200.0
-
-    print('compiledNN check finished')
-    return (distance / value_counter)
+    p = multiprocessing.Process(target=execute, args=(
+        configuration,
+        batched_verification_dataset,
+        predictions_tensorflow.dtype.char,
+        predictions_tensorflow.shape,
+        result,
+        success,
+    ))
+    p.start()
+    p.join()
+    if success.value == 1:
+        predictions_compiled_nn = numpy.frombuffer(
+            buffer=result,
+            dtype=predictions_tensorflow.dtype.char,
+        ).reshape(predictions_tensorflow.shape)
+        print('CompiledNN check finished')
+        return float(numpy.square(predictions_tensorflow - predictions_compiled_nn).mean())
+    print('CompiledNN check finished')
+    raise RuntimeError('CompiledNN check did not succeed')
