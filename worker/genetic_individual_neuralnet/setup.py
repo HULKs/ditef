@@ -7,6 +7,6 @@ setuptools.setup(
         'ditef_worker_genetic_individual_neuralnet',
     ],
     install_requires=[
-        'tensorflow',
+        'tensorflow-gpu',
     ]
 )
