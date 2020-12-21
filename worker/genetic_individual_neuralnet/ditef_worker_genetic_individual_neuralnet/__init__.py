@@ -1,11 +1,11 @@
-import tensorflow as tf
-import pathlib
-import subprocess
 import json
-import PyCompiledNN
-import numpy
 import multiprocessing
 import multiprocessing.sharedctypes
+import numpy
+import pathlib
+import PyCompiledNN
+import subprocess
+import tensorflow as tf
 
 
 def run(payload):
@@ -13,7 +13,7 @@ def run(payload):
     configuration = payload['configuration']
     run_result = {
         'compiledNN_result': 500.0,
-        'accuracy':0,
+        'accuracy': 0,
         'training_progression': [],
     }
     tmp_model_path = pathlib.Path('tmp_' + payload['id'] + '.hdf5')
@@ -29,26 +29,29 @@ def run(payload):
         train_dataset = get_dataset(tf.data.TFRecordDataset(configuration['train_dataset']),
                                     configuration['batch_size'],
                                     configuration['type'],
-                                    configuration['input_size_x'] * configuration['input_size_y'],
+                                    configuration['input_size_x'] *
+                                    configuration['input_size_y'],
                                     configuration['augment_params'])
 
         test_dataset = get_dataset(tf.data.TFRecordDataset(configuration['test_dataset']),
-                                configuration['batch_size'],
-                                configuration['type'],
-                                configuration['input_size_x'] * configuration['input_size_y'],
-                                configuration['augment_params'])
+                                   configuration['batch_size'],
+                                   configuration['type'],
+                                   configuration['input_size_x'] *
+                                   configuration['input_size_y'],
+                                   configuration['augment_params'])
 
-        verify_dataset = get_dataset(tf.data.TFRecordDataset(configuration['test_dataset']),  #TODO: not use test_dataset here
-                                    configuration['batch_size'],
-                                    'verify',
-                                    configuration['input_size_x'] * configuration['input_size_y'],
-                                    configuration['augment_params'])
+        verify_dataset = get_dataset(tf.data.TFRecordDataset(configuration['test_dataset']),  # TODO: not use test_dataset here
+                                     configuration['batch_size'],
+                                     'verify',
+                                     configuration['input_size_x'] * \
+                                     configuration['input_size_y'],
+                                     configuration['augment_params'])
 
         model.optimizer.lr.assign(genome['initial_learning_rate'])
 
         tf_train_result = model.fit(
-                        train_dataset,
-                        epochs=genome['training_epochs'])
+            train_dataset,
+            epochs=genome['training_epochs'])
 
         run_result['training_progression'] = [
             {
@@ -66,7 +69,7 @@ def run(payload):
         evaluate_result = {
             name: value
             for name, value in zip(['loss'] + configuration['metrics'],
-                                model.evaluate(test_dataset))
+                                   model.evaluate(test_dataset))
         }
 
         for key in evaluate_result:
@@ -78,9 +81,9 @@ def run(payload):
             save_format='h5')
 
         run_result['compiledNN_result'] = compiledNN_average_distance(model,
-                                                                  tmp_model_path,
-                                                                  verify_dataset,
-                                                                  configuration)
+                                                                      tmp_model_path,
+                                                                      verify_dataset,
+                                                                      configuration)
 
     except Exception as e:
         print(e)
@@ -207,9 +210,9 @@ def build_model(genome, configuration):
 def shape_and_augment_sample(data, shape, augment_params):
     image = tf.reshape(tf.cast(data, tf.float32), shape)
     image = tf.image.random_brightness(
-                image,
-                augment_params['random_brightness_delta'],
-                seed=augment_params['random_brightness_seed'])
+        image,
+        augment_params['random_brightness_delta'],
+        seed=augment_params['random_brightness_seed'])
     image = tf.clip_by_value(image, 0.0, 255.0, name=None)
     return(image)
 
@@ -248,7 +251,8 @@ def parse_tfrecord_verify(data_size, example):
 
 def get_dataset(tfr_ds, batch_size, nnType, data_size, augment_params):
     if (nnType == 'positioner'):
-        tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_circle(data_size, augment_params, x))
+        tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_circle(
+            data_size, augment_params, x))
         tfr_ds = tfr_ds.batch(batch_size)
         tfr_ds = tfr_ds.prefetch(batch_size)
         return tfr_ds
@@ -256,7 +260,8 @@ def get_dataset(tfr_ds, batch_size, nnType, data_size, augment_params):
         tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_verify(data_size, x))
         return tfr_ds
     else:
-        tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_class(data_size, augment_params, x))
+        tfr_ds = tfr_ds.map(lambda x: parse_tfrecord_class(
+            data_size, augment_params, x))
         tfr_ds = tfr_ds.batch(batch_size)
         tfr_ds = tfr_ds.prefetch(batch_size)
         return tfr_ds
