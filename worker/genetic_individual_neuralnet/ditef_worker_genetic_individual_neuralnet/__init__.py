@@ -312,7 +312,11 @@ def compiledNN_average_distance(model, model_path, verification_dataset, configu
             buffer=result,
             dtype=predictions_tensorflow.dtype.char,
         ).reshape(predictions_tensorflow.shape)
+        mean_squared_error = numpy.square(
+            predictions_tensorflow - predictions_compiled_nn,
+        ).mean()
+        if numpy.isnan(mean_squared_error):
+            raise RuntimeError('CompiledNN check mean squared error was NaN')
         print('CompiledNN check finished')
-        return float(numpy.square(predictions_tensorflow - predictions_compiled_nn).mean())
+        return float(mean_squared_error)
     print('CompiledNN check finished')
-    raise RuntimeError('CompiledNN check did not succeed')
