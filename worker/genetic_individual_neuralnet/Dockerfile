@@ -13,7 +13,7 @@ RUN cd /tmp && wget -q "$(curl -s https://api.github.com/repos/Kitware/CMake/rel
 
 RUN git clone https://github.com/boostorg/boost.git \
     && cd boost \
-    && git switch --detach $(git describe --tags $(git rev-list --tags --max-count=1)) \
+    && git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) \
     && git submodule update --init \
     && ./bootstrap.sh --prefix=/usr \
     && ./b2 install
