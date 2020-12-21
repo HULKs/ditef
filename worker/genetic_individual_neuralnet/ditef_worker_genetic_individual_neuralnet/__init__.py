@@ -62,7 +62,7 @@ def run(payload):
         ]
 
         epoch = 0
-        for epoch_entry in run_result['training_progression']:
+        for _ in run_result['training_progression']:
             run_result['training_progression'][epoch]['epoch'] = epoch + 1
             epoch += 1
 
