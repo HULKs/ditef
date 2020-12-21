@@ -84,6 +84,7 @@ def run(payload):
                                                                       tmp_model_path,
                                                                       verify_dataset,
                                                                       configuration)
+        print(run_result['compiledNN_result'])
 
     except Exception as e:
         print(e)
@@ -320,3 +321,4 @@ def compiledNN_average_distance(model, model_path, verification_dataset, configu
         print('CompiledNN check finished')
         return float(mean_squared_error)
     print('CompiledNN check finished')
+    raise RuntimeError('CompiledNN check did not succeed')
