@@ -67,68 +67,27 @@ class Algorithm:
 
         # load individuals (create dir if it does not exists)
         (self.state_path/'individuals').mkdir(parents=True, exist_ok=True)
-        for individual_file in (self.state_path/'individuals').glob('**/*.json'):
-            importlib.import_module(
+        importlib.import_module(
                 self.individual_type,
-            ).Individual.load_individual_to_static_dict(
-                individual_file,
+            ).Individual.load_individuals_to_static_dict(
+                self.state_path/'individuals',
                 self.task_api_client,
                 Population.configuration_values(self.individual_type),
                 importlib.import_module(self.individual_type).Individual)
 
         # load populations (create dir if it does not exists)
         (self.state_path/'populations').mkdir(parents=True, exist_ok=True)
-        for population_file in (self.state_path/'populations').glob('**/*.json'):
-            # check population file
-            with open(population_file, 'r') as f:
-                file_content = f.read()
-            if len(file_content) == 0:
-                print('skipping population due to empty file:', population_file)
-                continue
-            try:
-                population_data = json.loads(file_content)
-            except Exception as e:
-                print('skipping population that could not be parse:', population_file)
-                continue
-            if not 'configuration' in population_data:
-                print('skipping population with missing configuration:', population_file)
-                continue
-            if not 'members' in population_data:
-                print('skipping population with missing members list:', population_file)
-                continue
-
-            # check population configuration
-            load_population = True
-            for required_key in Population.configuration_values(self.individual_type):
-                if not required_key in population_data['configuration']:
-                    print('missing configuration key:', required_key, 'in file:', population_file)
-                    load_population = False
-            if not load_population:
-                print('skipping population:', population_file)
-                continue
-
-            # create population
-            new_population = Population(
-                self.individual_type,
-                self.task_api_client,
-                self.metric_event,
-                population_data['configuration'],
-                self.state_path,
-                population_file.stem
-            )
-
-            # add members to population
-            for member_id in population_data['members']:
-                if member_id in importlib.import_module(self.individual_type).Individual.individuals:
-                    new_population.load_member_from_static_dict(member_id)
-                else:
-                    print("could not load individual:", member_id)
+        loaded_populations = Population.load_populations(
+            self.individual_type,
+            self.task_api_client,
+            self.metric_event,
+            self.state_path)
+        for loaded_population in loaded_populations:
             self.populations.append({
-                'population': new_population,
-                'tasks': [asyncio.create_task(new_population.run()) for _ in range(self.pending_individuals)],
-            })
-
-            self.metric_event.notify()
+                    'population': loaded_population,
+                    'tasks': [asyncio.create_task(loaded_population.run()) for _ in range(self.pending_individuals)],
+                })
+        self.metric_event.notify()
 
     def initialize_state(self):
         self.state_path.mkdir(parents=True, exist_ok=True)

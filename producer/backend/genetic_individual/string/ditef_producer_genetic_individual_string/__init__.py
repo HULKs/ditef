@@ -66,9 +66,7 @@ class Individual(AbstractIndividual):
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
         Individual.individuals[individual_id].write_to_file(individuals_path)
-        parent.genealogy_children.append(individual_id)
-        parent.write_to_file(individuals_path)
-        parent.update_event.notify()
+        parent.add_child(individual_id, individuals_path)
 
         return Individual.individuals[individual_id]
 
@@ -92,12 +90,8 @@ class Individual(AbstractIndividual):
             parent_b.id,
         ]
         Individual.individuals[individual_id].write_to_file(individuals_path)
-        parent_a.genealogy_children.append(individual_id)
-        parent_a.write_to_file(individuals_path)
-        parent_a.update_event.notify()
-        parent_b.genealogy_children.append(individual_id)
-        parent_b.write_to_file(individuals_path)
-        parent_b.update_event.notify()
+        parent_a.add_child(individual_id, individuals_path)
+        parent_b.add_child(individual_id, individuals_path)
 
         return Individual.individuals[individual_id]
 
@@ -120,7 +114,7 @@ class Individual(AbstractIndividual):
                         self.configuration['character_pool']))
         self.update_event.notify()
 
-    async def evaluate(self):
+    async def evaluate(self, individuals_path):
         self.evaluation_result = await self.task_api_client.run(
             'ditef_worker_genetic_individual_string',
             payload={
@@ -128,6 +122,7 @@ class Individual(AbstractIndividual):
                 'target_string': self.configuration['target_string'],
             },
         )
+        self.write_to_file(individuals_path)
         self.update_event.notify()
 
     def fitness(self) -> typing.Optional[float]:

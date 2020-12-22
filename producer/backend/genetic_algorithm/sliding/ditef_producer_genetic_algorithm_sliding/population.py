@@ -14,6 +14,9 @@ import weakref
 
 class Population:
 
+    populations = []
+    loaded_default_configuration = None
+
     @staticmethod
     def configuration_values(individual_type: str) -> dict:
         if Population.loaded_default_configuration is not None:
@@ -57,8 +60,57 @@ class Population:
             if population_reference() is not None
         ]
 
-    populations = []
-    loaded_default_configuration = None
+    @staticmethod
+    def load_populations(individual_type, task_api_client, metric_event, state_path):
+        loaded_populations = []
+        for population_file in (state_path/'populations').glob('**/*.json'):
+            # check population file
+            with open(population_file, 'r') as f:
+                file_content = f.read()
+            if len(file_content) == 0:
+                print('skipping population due to empty file:', population_file)
+                continue
+            try:
+                population_data = json.loads(file_content)
+            except Exception as e:
+                print('skipping population that could not be parse:', population_file)
+                continue
+            if not 'configuration' in population_data:
+                print('skipping population with missing configuration:', population_file)
+                continue
+            if not 'members' in population_data:
+                print('skipping population with missing members list:', population_file)
+                continue
+
+            # check population configuration
+            load_population = True
+            for required_key in Population.configuration_values(individual_type):
+                if not required_key in population_data['configuration']:
+                    print('missing configuration key:', required_key, 'in file:', population_file)
+                    load_population = False
+            if not load_population:
+                print('skipping population:', population_file)
+                continue
+
+            # create population
+            new_population = Population(
+                individual_type,
+                task_api_client,
+                metric_event,
+                population_data['configuration'],
+                state_path,
+                population_file.stem
+            )
+
+            # add members to population
+            for member_id in population_data['members']:
+                if member_id in importlib.import_module(individual_type).Individual.individuals:
+                    new_population.load_member_from_static_dict(member_id)
+                else:
+                    print("could not load individual:", member_id)
+            loaded_populations.append(new_population)
+        return loaded_populations
+
 
     def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: Path, id: str):
         self.individual_type = individual_type
@@ -106,8 +158,7 @@ class Population:
         self.members.append(individual)
         self.write_to_file()
         self.members_event.notify()
-        await individual.evaluate()
-        individual.write_to_file(self.state_path/'individuals')
+        await individual.evaluate(self.state_path/'individuals')
         self.members_event.notify()
 
     def write_to_file(self):
@@ -266,8 +317,7 @@ class Population:
         try:
             while self.loading_queue:
                 individual, *self.loading_queue = self.loading_queue
-                await individual.evaluate()
-                individual.write_to_file(self.state_path/'individuals')
+                await individual.evaluate(self.state_path/'individuals')
                 self.members_event.notify()
             while True:
                 await self.ensure_minimum_amount_of_members()

@@ -34,6 +34,16 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
+    def load_individuals_to_static_dict(individuals_folder: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_constructor):
+        for individual_file in individuals_folder.glob('**/*.json'):
+            AbstractIndividual.load_individual_to_static_dict(
+                individual_file,
+                task_api_client,
+                configuration,
+                individual_constructor
+            )
+
+    @staticmethod
     def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_constructor):
         with open(individual_file, 'r') as f:
             file_content = f.read()
@@ -75,6 +85,11 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
             data['evaluation_result'] = self.evaluation_result
         ditef_producer_shared.json.dump_complete(data, individuals_path/(self.id + '.json'))
 
+    def add_child(self, individual_id, individuals_path):
+        self.genealogy_children.append(individual_id)
+        self.write_to_file(individuals_path)
+        self.update_event.notify()
+
     @abc.abstractmethod
     def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         pass
@@ -92,7 +107,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    async def evaluate(self):
+    async def evaluate(self, individuals_path):
         pass
 
     @abc.abstractmethod
