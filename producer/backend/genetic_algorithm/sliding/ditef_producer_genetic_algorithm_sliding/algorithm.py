@@ -84,9 +84,11 @@ class Algorithm:
             self.state_path)
         for loaded_population in loaded_populations:
             self.populations.append({
-                    'population': loaded_population,
-                    'tasks': [asyncio.create_task(loaded_population.run()) for _ in range(self.pending_individuals)],
-                })
+                'population': loaded_population,
+                'tasks': [
+                    asyncio.create_task(loaded_population.run())
+                    for _ in range(self.pending_individuals)],
+            })
         self.metric_event.notify()
 
     def initialize_state(self):
