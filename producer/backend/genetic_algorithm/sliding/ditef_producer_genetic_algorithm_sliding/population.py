@@ -74,7 +74,7 @@ class Population:
                 continue
             try:
                 population_data = json.loads(file_content)
-            except Exception as e:
+            except Exception:
                 print('skipping population that could not be parse:', population_file)
                 continue
             if not 'configuration' in population_data:
@@ -101,7 +101,7 @@ class Population:
                 metric_event,
                 population_data['configuration'],
                 state_path,
-                population_file.stem
+                population_file.stem,
             )
 
             # add members to population
@@ -109,7 +109,7 @@ class Population:
                 if member_id in importlib.import_module(individual_type).Individual.individuals:
                     new_population.load_member_from_static_dict(member_id)
                 else:
-                    print("could not load individual:", member_id)
+                    print('could not load individual:', member_id)
             loaded_populations.append(new_population)
         return loaded_populations
 
@@ -121,7 +121,7 @@ class Population:
             algorithm_event,
             configuration,
             state_path,
-            str(uuid.uuid4())
+            str(uuid.uuid4()),
         )
 
     def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: pathlib.Path, id: str):
@@ -133,7 +133,7 @@ class Population:
         self.metric_event = ditef_producer_shared.event.BroadcastEvent()
         self.members_event = ditef_producer_shared.event.BroadcastEvent()
         self.members = []
-        self.loading_queue = asyncio.Queue()
+        self.loading_queue = []
         self.state_path = state_path
         self.id = id
         self.history = pandas.DataFrame(
@@ -178,7 +178,7 @@ class Population:
             'members': [member.id for member in self.members],
             'configuration': self.configuration,
         }
-        ditef_producer_shared.json.dump_complete(data, self.state_path/'populations'/(self.id + '.json'))
+        ditef_producer_shared.json.dump_complete(data, self.state_path/'populations'/(f'{self.id}.json'))
 
     async def random_operation(self):
         Population.purge_dead_populations()
@@ -257,8 +257,8 @@ class Population:
         ).Individual.individuals[individual_id]
         self.members.append(individual)
         self.members_event.notify()
-        if individual.evaluation_result is None:
-            self.loading_queue.put_nowait(individual)
+        if individual.fitness() is None:
+            self.loading_queue.append(individual)
 
     def ensure_maximum_amount_of_members(self):
         if len(self.members) > self.configuration['maximum_amount_of_members']:
@@ -327,13 +327,13 @@ class Population:
 
     async def run(self):
         try:
-            while not self.loading_queue.empty():
+            while True:
                 try:
-                    individual = self.loading_queue.get_nowait()
+                    individual = self.loading_queue.pop(0)
                     await individual.evaluate(self.state_path/'individuals')
                     self.members_event.notify()
-                except asyncio.QueueEmpty:
-                    pass
+                except IndexError:
+                    break
             while True:
                 await self.ensure_minimum_amount_of_members()
                 await self.random_operation()
