@@ -2,6 +2,7 @@ import abc
 import aiohttp.web
 import asyncio
 import datetime
+import importlib
 import json
 from pathlib import Path
 import typing
@@ -34,17 +35,18 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def load_individuals_to_static_dict(individuals_folder: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_constructor):
-        for individual_file in individuals_folder.glob('**/*.json'):
+    def load_individuals_to_static_dict(individuals_folder: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type: str):
+        (individuals_folder/'individuals').mkdir(parents=True, exist_ok=True)
+        for individual_file in (individuals_folder/'individuals').glob('**/*.json'):
             AbstractIndividual.load_individual_to_static_dict(
                 individual_file,
                 task_api_client,
                 configuration,
-                individual_constructor
+                individual_type,
             )
 
     @staticmethod
-    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_constructor):
+    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type):
         with open(individual_file, 'r') as f:
             file_content = f.read()
 
@@ -61,7 +63,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
                 print('missing key:', required_key, 'in file:', individual_file)
                 return
 
-        AbstractIndividual.individuals[individual_file.stem] = individual_constructor(task_api_client,
+        AbstractIndividual.individuals[individual_file.stem] = importlib.import_module(individual_type).Individual(task_api_client,
             configuration,
             individual_file.stem,
             individual_data['genome'],

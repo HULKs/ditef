@@ -58,7 +58,7 @@ class Algorithm:
             raise IOError(f'empty file: {configuration_file}')
         try:
             configuration_data = json.loads(file_content)
-        except Exception as e:
+        except Exception:
             raise SyntaxError(f'could not parse: {configuration_file}')
         for required_key in Population.configuration_values(self.individual_type):
             if not required_key in configuration_data:
@@ -66,17 +66,15 @@ class Algorithm:
         Population.loaded_default_configuration = configuration_data
 
         # load individuals (create dir if it does not exists)
-        (self.state_path/'individuals').mkdir(parents=True, exist_ok=True)
         importlib.import_module(
                 self.individual_type,
             ).Individual.load_individuals_to_static_dict(
-                self.state_path/'individuals',
+                self.state_path,
                 self.task_api_client,
                 Population.configuration_values(self.individual_type),
-                importlib.import_module(self.individual_type).Individual)
+                self.individual_type)
 
         # load populations (create dir if it does not exists)
-        (self.state_path/'populations').mkdir(parents=True, exist_ok=True)
         loaded_populations = Population.load_populations(
             self.individual_type,
             self.task_api_client,
