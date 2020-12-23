@@ -13,18 +13,19 @@ import ditef_router.api_client
 
 class AbstractIndividual(metaclass=abc.ABCMeta):
 
-    @abc.abstractmethod
-    def configuration_values(self) -> dict:
+    @abc.abstractstaticmethod
+    def configuration_values() -> dict:
         pass
 
     individuals = {}
 
-    def __init__(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict, id: str, genome: typing.List[bool], creation_type: str):
+    def __init__(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict, id: str, genome: typing.List[bool], creation_type: str, individual_file: pathlib.Path):
         self.task_api_client = task_api_client
         self.configuration = configuration
         self.id = id
         self.genome = genome
         self.creation_type = creation_type
+        self.individual_file = individual_file
         self.genealogy_parents = []
         self.genealogy_children = []
         self.evaluation_result: typing.Optional[dict] = None
@@ -63,11 +64,13 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
                 print('missing key:', required_key, 'in file:', individual_file)
                 return
 
-        AbstractIndividual.individuals[individual_file.stem] = importlib.import_module(individual_type).Individual(task_api_client,
+        AbstractIndividual.individuals[individual_file.stem] = importlib.import_module(individual_type).Individual(
+            task_api_client,
             configuration,
             individual_file.stem,
             individual_data['genome'],
             individual_data['creation_type'],
+            individual_file,
         )
 
         AbstractIndividual.individuals[individual_file.stem].genealogy_parents = individual_data['genealogy_parents']
@@ -76,32 +79,32 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         if 'evaluation_result' in individual_data:
             AbstractIndividual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
-    def write_to_file(self, individuals_path: pathlib.Path):
+    def write_to_file(self):
         data = {
             'genome': self.genome,
             'creation_type': self.creation_type,
             'genealogy_parents':  self.genealogy_parents,
-            'genealogy_children': self.genealogy_children
+            'genealogy_children': self.genealogy_children,
         }
         if self.evaluation_result is not None:
             data['evaluation_result'] = self.evaluation_result
-        ditef_producer_shared.json.dump_complete(data, individuals_path/(self.id + '.json'))
+        ditef_producer_shared.json.dump_complete(data, self.individual_file)
 
-    def add_child(self, individual_id, individuals_path):
+    def add_child(self, individual_id: str):
         self.genealogy_children.append(individual_id)
-        self.write_to_file(individuals_path)
+        self.write_to_file()
         self.update_event.notify()
 
-    @abc.abstractmethod
-    def random(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    @abc.abstractstaticmethod
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, state_path: pathlib.Path) -> 'Individual':
         pass
 
-    @abc.abstractmethod
-    def clone(self, parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
+    @abc.abstractstaticmethod
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, state_path: pathlib.Path) -> 'Individual':
         pass
 
-    @abc.abstractmethod
-    def cross_over_one(self, parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    @abc.abstractstaticmethod
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, state_path: pathlib.Path) -> 'Individual':
         pass
 
     @abc.abstractmethod
@@ -109,7 +112,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    async def evaluate(self, individuals_path):
+    async def evaluate(self):
         pass
 
     @abc.abstractmethod

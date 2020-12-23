@@ -12,7 +12,7 @@ import ditef_router.api_client
 class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
 
     def individual_type(self) -> str:
-        return('string')
+        return 'string'
 
     @staticmethod
     def configuration_values() -> dict:
@@ -32,7 +32,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
         }
 
     @staticmethod
-    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: pathlib.Path) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, state_path: pathlib.Path) -> 'Individual':
         '''Generates a new random individual'''
 
         target_length = len(configuration['target_string'])
@@ -47,13 +47,14 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                 for _ in range(random.randrange(target_length // 2, target_length * 2))
             ],
             'random',
+            state_path/'individuals'/(individual_id + '.json'),
         )
-        Individual.individuals[individual_id].write_to_file(individuals_path)
+        Individual.individuals[individual_id].write_to_file()
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, individuals_path: pathlib.Path) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, state_path: pathlib.Path) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -63,15 +64,16 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
             individual_id,
             copy.deepcopy(parent.genome),
             creation_type,
+            state_path/'individuals'/(individual_id + '.json'),
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
-        Individual.individuals[individual_id].write_to_file(individuals_path)
-        parent.add_child(individual_id, individuals_path)
+        Individual.individuals[individual_id].write_to_file()
+        parent.add_child(individual_id)
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: pathlib.Path) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, state_path: pathlib.Path) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())
@@ -84,14 +86,15 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                 for gene_a, gene_b in zip(parent_a.genome, parent_b.genome)
             ],
             'cross_over_one',
+            state_path/'individuals'/(individual_id + '.json'),
         )
         Individual.individuals[individual_id].genealogy_parents = [
             parent_a.id,
             parent_b.id,
         ]
-        Individual.individuals[individual_id].write_to_file(individuals_path)
-        parent_a.add_child(individual_id, individuals_path)
-        parent_b.add_child(individual_id, individuals_path)
+        Individual.individuals[individual_id].write_to_file()
+        parent_a.add_child(individual_id)
+        parent_b.add_child(individual_id)
 
         return Individual.individuals[individual_id]
 
@@ -114,7 +117,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                         self.configuration['character_pool']))
         self.update_event.notify()
 
-    async def evaluate(self, individuals_path):
+    async def evaluate(self):
         self.evaluation_result = await self.task_api_client.run(
             'ditef_worker_genetic_individual_string',
             payload={
@@ -122,7 +125,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                 'target_string': self.configuration['target_string'],
             },
         )
-        self.write_to_file(individuals_path)
+        self.write_to_file()
         self.update_event.notify()
 
     def fitness(self) -> typing.Optional[float]:
