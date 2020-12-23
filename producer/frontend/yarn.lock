@@ -6864,11 +6864,6 @@ jest@26.6.0:
     import-local "^3.0.2"
     jest-cli "^26.6.0"
 
-jetbrains-mono@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/jetbrains-mono/-/jetbrains-mono-1.0.1.tgz#e28dbca8f6db03cbcc0928cbe94ff030e46d5439"
-  integrity sha512-4TkfvhiErEobGf3bu4obolCR5zoR8jzQver5W4BO4Tammezfc0BcawA8auxAdYbst4+WBv29P1na2hvbi9w4Lg==
-
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"

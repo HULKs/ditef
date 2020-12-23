@@ -1,14 +1,14 @@
 import copy
-from pathlib import Path
+import pathlib
 import random
 import typing
 import uuid
 
-from ditef_producer_shared.genetic_individual import AbstractIndividual
+import ditef_producer_shared.genetic_individual
 import ditef_router.api_client
 
 
-class Individual(AbstractIndividual):
+class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
 
     def individual_type(self) -> str:
         return('bitvector')
@@ -27,7 +27,7 @@ class Individual(AbstractIndividual):
         }
 
     @staticmethod
-    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: pathlib.Path) -> 'Individual':
         '''Generates a new random individual'''
 
         individual_id = str(uuid.uuid4())
@@ -46,7 +46,7 @@ class Individual(AbstractIndividual):
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, individuals_path: Path) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, individuals_path: pathlib.Path) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -64,7 +64,7 @@ class Individual(AbstractIndividual):
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: pathlib.Path) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())

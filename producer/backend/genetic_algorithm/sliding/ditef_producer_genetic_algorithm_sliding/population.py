@@ -3,13 +3,14 @@ import datetime
 import json
 import importlib
 import pandas
-from pathlib import Path
+import pathlib
 import random
+import uuid
+import weakref
 
 import ditef_producer_shared.event
 import ditef_producer_shared.json
 import ditef_router.api_client
-import weakref
 
 
 class Population:
@@ -112,8 +113,18 @@ class Population:
             loaded_populations.append(new_population)
         return loaded_populations
 
+    @staticmethod
+    def empty(individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: pathlib.Path):
+        return Population(
+            individual_type,
+            task_api_client,
+            algorithm_event,
+            configuration,
+            state_path,
+            str(uuid.uuid4())
+        )
 
-    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: Path, id: str):
+    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: pathlib.Path, id: str):
         self.individual_type = individual_type
         self.task_api_client = task_api_client
         self.algorithm_metric_event = algorithm_event

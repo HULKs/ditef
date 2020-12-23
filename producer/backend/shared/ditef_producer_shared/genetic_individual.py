@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import importlib
 import json
-from pathlib import Path
+import pathlib
 import typing
 
 import ditef_producer_shared.event
@@ -14,7 +14,7 @@ import ditef_router.api_client
 class AbstractIndividual(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def configuration_values() -> dict:
+    def configuration_values(self) -> dict:
         pass
 
     individuals = {}
@@ -35,7 +35,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def load_individuals_to_static_dict(individuals_folder: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type: str):
+    def load_individuals_to_static_dict(individuals_folder: pathlib.Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type: str):
         (individuals_folder/'individuals').mkdir(parents=True, exist_ok=True)
         for individual_file in (individuals_folder/'individuals').glob('**/*.json'):
             AbstractIndividual.load_individual_to_static_dict(
@@ -46,7 +46,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
             )
 
     @staticmethod
-    def load_individual_to_static_dict(individual_file: Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type):
+    def load_individual_to_static_dict(individual_file: pathlib.Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type):
         with open(individual_file, 'r') as f:
             file_content = f.read()
 
@@ -55,7 +55,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
             return
         try:
             individual_data = json.loads(file_content)
-        except Exception as e:
+        except Exception:
             print('could not parse:', individual_file)
             return
         for required_key in ['genome', 'creation_type', 'genealogy_parents', 'genealogy_children']:
@@ -76,7 +76,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         if 'evaluation_result' in individual_data:
             AbstractIndividual.individuals[individual_file.stem].evaluation_result = individual_data['evaluation_result']
 
-    def write_to_file(self, individuals_path: Path):
+    def write_to_file(self, individuals_path: pathlib.Path):
         data = {
             'genome': self.genome,
             'creation_type': self.creation_type,
@@ -93,15 +93,15 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         self.update_event.notify()
 
     @abc.abstractmethod
-    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def random(self, task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         pass
 
     @abc.abstractmethod
-    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
+    def clone(self, parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str) -> 'Individual':
         pass
 
     @abc.abstractmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
+    def cross_over_one(self, parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict) -> 'Individual':
         pass
 
     @abc.abstractmethod

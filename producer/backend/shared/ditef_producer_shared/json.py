@@ -1,8 +1,8 @@
 import datetime
 import numpy
-from pathlib import Path
+import pathlib
 import simplejson
-from threading import Thread
+import threading
 
 
 class NumpyAndNanEncoder(simplejson.JSONEncoder):
@@ -27,10 +27,10 @@ def json_formatter_compressed(data):
     return simplejson.dumps(data, ignore_nan=True, cls=NumpyAndNanEncoder)
 
 
-def dump_complete(data: dict, file: Path):
+def dump_complete(data: dict, file: pathlib.Path):
     def prevent_interrupt():
         with open(file, 'w') as f:
             simplejson.dump(data, f, indent=4)
-    thread = Thread(target=prevent_interrupt)
+    thread = threading.Thread(target=prevent_interrupt)
     thread.start()
     thread.join()

@@ -1,8 +1,7 @@
 import asyncio
 import json
 import importlib
-from pathlib import Path
-import uuid
+import pathlib
 
 import ditef_producer_shared.event
 import ditef_producer_shared.json
@@ -20,17 +19,16 @@ class Algorithm:
         self.minimum_websocket_interval = minimum_websocket_interval
         self.task_api_client = task_api_client
         self.metric_event = ditef_producer_shared.event.BroadcastEvent()
-        self.state_path = Path(state_path)
+        self.state_path = pathlib.Path(state_path)
         self.load_state()
 
     async def add_population(self, configuration: dict):
-        population = Population(
+        population = Population.empty(
             self.individual_type,
             self.task_api_client,
             self.metric_event,
             configuration,
             self.state_path,
-            str(uuid.uuid4())
         )
         self.populations.append({
             'population': population,
