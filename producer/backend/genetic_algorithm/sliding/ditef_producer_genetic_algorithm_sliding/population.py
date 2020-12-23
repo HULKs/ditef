@@ -67,7 +67,7 @@ class Population:
         loaded_populations = []
         for population_file in (state_path/'populations').glob('**/*.json'):
             # check population file
-            with open(population_file, 'r') as f:
+            with population_file.open('r') as f:
                 file_content = f.read()
             if len(file_content) == 0:
                 print('skipping population due to empty file:', population_file)

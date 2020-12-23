@@ -48,7 +48,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
 
     @staticmethod
     def load_individual_to_static_dict(individual_file: pathlib.Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type):
-        with open(individual_file, 'r') as f:
+        with individual_file.open('r') as f:
             file_content = f.read()
 
         if len(file_content) == 0:

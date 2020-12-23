@@ -2,7 +2,7 @@ import datetime
 import numpy
 import pathlib
 import simplejson
-import threading
+import tempfile
 
 
 class NumpyAndNanEncoder(simplejson.JSONEncoder):
@@ -20,7 +20,7 @@ class NumpyAndNanEncoder(simplejson.JSONEncoder):
 
 
 def json_formatter_pretty(data):
-        return simplejson.dumps(data, sort_keys=True, indent=4, ignore_nan=True, cls=NumpyAndNanEncoder)
+    return simplejson.dumps(data, sort_keys=True, indent=4, ignore_nan=True, cls=NumpyAndNanEncoder)
 
 
 def json_formatter_compressed(data):
@@ -28,9 +28,7 @@ def json_formatter_compressed(data):
 
 
 def dump_complete(data: dict, file: pathlib.Path):
-    def prevent_interrupt():
-        with open(file, 'w') as f:
-            simplejson.dump(data, f, indent=4)
-    thread = threading.Thread(target=prevent_interrupt)
-    thread.start()
-    thread.join()
+    new_file = file.with_suffix(f'{file.suffix}.bu2')
+    with new_file.open('w') as f:
+        simplejson.dump(data, f, indent=4)
+    new_file.rename(file)

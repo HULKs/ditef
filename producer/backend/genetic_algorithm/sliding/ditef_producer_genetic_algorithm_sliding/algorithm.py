@@ -50,7 +50,7 @@ class Algorithm:
         # load configuration.json
         if (self.state_path/'configuration.json').is_file():
             configuration_file = self.state_path/'configuration.json'
-            with open(configuration_file, 'r') as f:
+            with configuration_file.open('r') as f:
                 file_content = f.read()
             if len(file_content) == 0:
                 raise IOError(f'empty file: {configuration_file}')
