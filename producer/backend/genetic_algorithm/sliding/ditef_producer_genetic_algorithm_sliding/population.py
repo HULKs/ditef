@@ -121,7 +121,7 @@ class Population:
         self.metric_event = ditef_producer_shared.event.BroadcastEvent()
         self.members_event = ditef_producer_shared.event.BroadcastEvent()
         self.members = []
-        self.loading_queue = []
+        self.loading_queue = asyncio.Queue()
         self.state_path = state_path
         self.id = id
         self.history = pandas.DataFrame(
@@ -246,7 +246,7 @@ class Population:
         self.members.append(individual)
         self.members_event.notify()
         if individual.evaluation_result is None:
-            self.loading_queue.append(individual)
+            self.loading_queue.put_nowait(individual)
 
     def ensure_maximum_amount_of_members(self):
         if len(self.members) > self.configuration['maximum_amount_of_members']:
@@ -315,10 +315,13 @@ class Population:
 
     async def run(self):
         try:
-            while self.loading_queue:
-                individual, *self.loading_queue = self.loading_queue
-                await individual.evaluate(self.state_path/'individuals')
-                self.members_event.notify()
+            while not self.loading_queue.empty():
+                try:
+                    individual = self.loading_queue.get_nowait()
+                    await individual.evaluate(self.state_path/'individuals')
+                    self.members_event.notify()
+                except asyncio.QueueEmpty:
+                    pass
             while True:
                 await self.ensure_minimum_amount_of_members()
                 await self.random_operation()
