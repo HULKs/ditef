@@ -40,7 +40,8 @@ class Algorithm:
         for task in self.populations[population_index]['tasks']:
             task.cancel()
         await asyncio.wait(self.populations[population_index]['tasks'])
-        (self.state_path/'populations'/(self.populations[population_index]['population'].id + '.json')).unlink()
+        (self.state_path/'populations' /
+         (self.populations[population_index]['population'].id + '.json')).unlink()
         del self.populations[population_index]
         self.metric_event.notify()
 
@@ -59,7 +60,9 @@ class Algorithm:
                 raise SyntaxError(f'could not parse: {configuration_file}')
             for required_key in Population.configuration_values(self.individual_type):
                 if not required_key in configuration_data:
-                    raise KeyError(f'missing key: {required_key} in file {configuration_file}')
+                    raise KeyError(
+                        f'missing key: {required_key} in file {configuration_file}',
+                    )
             Population.loaded_default_configuration = configuration_data
         else:
             ditef_producer_shared.json.dump_complete(
@@ -68,24 +71,27 @@ class Algorithm:
             )
         # load individuals (create dir if it does not exists)
         importlib.import_module(
-                self.individual_type,
-            ).Individual.load_individuals_to_static_dict(
-                self.state_path,
-                self.task_api_client,
-                Population.configuration_values(self.individual_type),
-                self.individual_type)
+            self.individual_type,
+        ).Individual.load_individuals_to_static_dict(
+            self.state_path,
+            self.task_api_client,
+            Population.configuration_values(self.individual_type),
+            self.individual_type,
+        )
 
         # load populations (create dir if it does not exists)
         loaded_populations = Population.load_populations(
             self.individual_type,
             self.task_api_client,
             self.metric_event,
-            self.state_path)
+            self.state_path,
+        )
         for loaded_population in loaded_populations:
             self.populations.append({
                 'population': loaded_population,
                 'tasks': [
                     asyncio.create_task(loaded_population.run())
-                    for _ in range(self.pending_individuals)],
+                    for _ in range(self.pending_individuals)
+                ],
             })
         self.metric_event.notify()
