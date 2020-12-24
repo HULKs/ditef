@@ -100,11 +100,12 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
         self.update_event.notify()
 
     async def evaluate(self):
-        sum = await self.task_api_client.run(
-            'ditef_worker_genetic_individual_bitvector',
-            self.genome,
-        )
-        self.evaluation_result = {'sum': sum}
+        self.evaluation_result = {
+            'sum': await self.task_api_client.run(
+                'ditef_worker_genetic_individual_bitvector',
+                self.genome,
+            ),
+        }
         self.write_to_file()
         self.update_event.notify()
 
