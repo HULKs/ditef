@@ -68,15 +68,11 @@ class Population:
         for population_file in (state_path/'populations').glob('**/*.json'):
             # check population file
             with population_file.open('r') as f:
-                file_content = f.read()
-            if len(file_content) == 0:
-                print('skipping population due to empty file:', population_file)
-                continue
-            try:
-                population_data = json.loads(file_content)
-            except Exception:
-                print('skipping population that could not be parse:', population_file)
-                continue
+                try:
+                    population_data = json.load(f)
+                except Exception:
+                    print(f'could not parse: {population_file}')
+                    continue
             if not 'configuration' in population_data:
                 print('skipping population with missing configuration:', population_file)
                 continue

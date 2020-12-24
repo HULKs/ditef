@@ -51,13 +51,10 @@ class Algorithm:
         if (self.state_path/'configuration.json').is_file():
             configuration_file = self.state_path/'configuration.json'
             with configuration_file.open('r') as f:
-                file_content = f.read()
-            if len(file_content) == 0:
-                raise IOError(f'empty file: {configuration_file}')
-            try:
-                configuration_data = json.loads(file_content)
-            except Exception:
-                raise SyntaxError(f'could not parse: {configuration_file}')
+                try:
+                    configuration_data = json.load(f)
+                except Exception:
+                    raise SyntaxError(f'could not parse: {configuration_file}')
             for required_key in Population.configuration_values(self.individual_type):
                 if not required_key in configuration_data:
                     raise KeyError(
@@ -69,7 +66,7 @@ class Algorithm:
                 Population.configuration_values(self.individual_type),
                 self.state_path/'configuration.json',
             )
-        # load individuals (create dir if it does not exists)
+        # load individuals
         importlib.import_module(
             self.individual_type,
         ).Individual.load_individuals_to_static_dict(
@@ -79,7 +76,7 @@ class Algorithm:
             self.individual_type,
         )
 
-        # load populations (create dir if it does not exists)
+        # load populations
         loaded_populations = Population.load_populations(
             self.individual_type,
             self.task_api_client,
