@@ -115,6 +115,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                     i = random.randrange(len(self.genome))
                     self.genome.insert(i, random.choice(
                         self.configuration['character_pool']))
+        self.write_to_file()
         self.update_event.notify()
 
     async def evaluate(self):

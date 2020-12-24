@@ -96,6 +96,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
         for _ in range(random.randrange(self.configuration['maximum_amount_of_mutations'] + 1)):
             i = random.randrange(len(self.genome))
             self.genome[i] = not self.genome[i]
+        self.write_to_file()
         self.update_event.notify()
 
     async def evaluate(self):
