@@ -47,7 +47,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                 for _ in range(random.randrange(target_length // 2, target_length * 2))
             ],
             'random',
-            state_path/'individuals'/(f'{individual_id}.json'),
+            state_path/'individuals'/f'{individual_id}.json',
         )
         Individual.individuals[individual_id].write_to_file()
 
@@ -64,7 +64,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
             individual_id,
             copy.deepcopy(parent.genome),
             creation_type,
-            state_path/'individuals'/(f'{individual_id}.json'),
+            state_path/'individuals'/f'{individual_id}.json',
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
         Individual.individuals[individual_id].write_to_file()
@@ -86,7 +86,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
                 for gene_a, gene_b in zip(parent_a.genome, parent_b.genome)
             ],
             'cross_over_one',
-            state_path/'individuals'/(f'{individual_id}.json'),
+            state_path/'individuals'/f'{individual_id}.json',
         )
         Individual.individuals[individual_id].genealogy_parents = [
             parent_a.id,
