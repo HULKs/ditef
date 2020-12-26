@@ -251,6 +251,7 @@ class Population:
         individual = importlib.import_module(
             self.individual_type,
         ).Individual.individuals[individual_id]
+        individual.configuration = self.configuration
         self.members.append(individual)
         self.members_event.notify()
         if individual.fitness() is None:
