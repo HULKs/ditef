@@ -38,7 +38,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
     @staticmethod
     def load_individuals_to_static_dict(individuals_folder: pathlib.Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type: str):
         (individuals_folder/'individuals').mkdir(parents=True, exist_ok=True)
-        for individual_file in (individuals_folder/'individuals').glob('**/*.json'):
+        for individual_file in (individuals_folder/'individuals').glob('*.json'):
             AbstractIndividual.load_individual_to_static_dict(
                 individual_file,
                 task_api_client,

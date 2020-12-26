@@ -65,7 +65,7 @@ class Population:
     def load_populations(individual_type, task_api_client, metric_event, state_path):
         (state_path/'populations').mkdir(parents=True, exist_ok=True)
         loaded_populations = []
-        for population_file in (state_path/'populations').glob('**/*.json'):
+        for population_file in (state_path/'populations').glob('*.json'):
             # check population file
             with population_file.open('r') as f:
                 try:
