@@ -16,14 +16,10 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
     @staticmethod
     def configuration_values() -> dict:
         return {
-            'genome_size': {
-                'help': 'Amount of bits in bitvector genome',
-                'default': 100,
-            },
-            'maximum_amount_of_mutations': {
-                'help': 'Maximum amount of mutations',
-                'default': 10,
-            },
+            # Amount of bits in bitvector genome
+            'genome_size': 100,
+            # Maximum amount of mutations
+            'maximum_amount_of_mutations': 10,
         }
 
     @staticmethod

@@ -24,30 +24,18 @@ class Population:
             return Population.loaded_default_configuration
         else:
             return {
-                'minimum_amount_of_members': {
-                    'help': 'Minimum amount of members in the population',
-                    'default': 15,
-                },
-                'maximum_amount_of_members': {
-                    'help': 'Maximum amount of members in the population',
-                    'default': 25,
-                },
-                'migration_weight': {
-                    'help': 'Weight for choosing migration as a random operation',
-                    'default': 0.005,
-                },
-                'clone_weight': {
-                    'help': 'Weight for choosing cloning with mutations as a random operation',
-                    'default': 0.25,
-                },
-                'random_individual_weight': {
-                    'help': 'Weight for choosing the creation of a random individual as a random operation',
-                    'default': 0.25,
-                },
-                'cross_over_individual_weight': {
-                    'help': 'Weight for choosing cross over to create a child from two parents as a random operation',
-                    'default': 0.5,
-                },
+                # Minimum amount of members in the population
+                'minimum_amount_of_members': 15,
+                # Maximum amount of members in the population
+                'maximum_amount_of_members': 25,
+                # Weight for choosing migration as a random operation
+                'migration_weight': 0.005,
+                # Weight for choosing cloning with mutations as a random operation
+                'clone_weight': 0.25,
+                # Weight for choosing the creation of a random individual as a random operation
+                'random_individual_weight': 0.25,
+                # Weight for choosing cross over to create a child from two parents as a random operation
+                'cross_over_individual_weight': 0.5,
                 **importlib.import_module(
                     individual_type,
                 ).Individual.configuration_values(),

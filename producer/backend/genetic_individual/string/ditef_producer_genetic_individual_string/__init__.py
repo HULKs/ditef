@@ -17,18 +17,12 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
     @staticmethod
     def configuration_values() -> dict:
         return {
-            'target_string': {
-                'help': 'string to strive for',
-                'default': "This is an example string.",
-            },
-            'character_pool': {
-                'help': 'Pool for random string operations to choose characters from',
-                'default': string.ascii_letters + " .",
-            },
-            'maximum_amount_of_mutations': {
-                'help': 'Maximum amount of mutations',
-                'default': 10,
-            },
+            # string to strive for
+            'target_string': "This is an example string.",
+            # Pool for random string operations to choose characters from
+            'character_pool': string.ascii_letters + " .",
+            # Maximum amount of mutations
+            'maximum_amount_of_mutations': 10,
         }
 
     @staticmethod
