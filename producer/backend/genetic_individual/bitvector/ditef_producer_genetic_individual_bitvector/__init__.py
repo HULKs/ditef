@@ -41,7 +41,6 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
             ],
             'random',
             state_path/'individuals'/f'{individual_id}.json',
-
         )
         Individual.individuals[individual_id].write_to_file()
 
