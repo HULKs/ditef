@@ -3,8 +3,8 @@ import aiohttp.web
 import asyncio
 import datetime
 import importlib
-import json
 import pathlib
+import simplejson
 import typing
 
 import ditef_producer_shared.event
@@ -50,7 +50,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
     def load_individual_to_static_dict(individual_file: pathlib.Path, task_api_client: ditef_router.api_client.ApiClient, configuration, individual_type):
         with individual_file.open('r') as f:
             try:
-                individual_data = json.load(f)
+                individual_data = simplejson.load(f)
             except Exception:
                 print(f'could not parse: {individual_file}')
                 return

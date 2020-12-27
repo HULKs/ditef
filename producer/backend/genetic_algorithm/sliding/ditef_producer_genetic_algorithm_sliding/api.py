@@ -3,7 +3,6 @@ import asyncio
 import datetime
 import io
 import numpy
-import ruamel.yaml
 import simplejson
 
 import ditef_producer_shared.json
@@ -13,9 +12,6 @@ from .population import Population
 
 
 class Api:
-
-    def __init__(self):
-        self.yaml = ruamel.yaml.YAML()
 
     def add_routes(self, app: aiohttp.web.Application):
         app.add_routes([
@@ -28,27 +24,6 @@ class Api:
                 self.handle_population_websocket,
             ),
         ])
-
-    def convert_configuration_values_to_yaml_configuration(self, configuration_schema: dict, indent=0):
-        result = ruamel.yaml.comments.CommentedMap()
-        for key, definition in configuration_schema.items():
-            if isinstance(definition['default'], dict):
-                result[key] = self.convert_configuration_values_to_yaml_configuration(
-                    definition['default'], indent+2)
-                result.yaml_set_comment_before_after_key(
-                    key, before=f'\n{definition["help"]}', indent=indent)
-            else:
-                result[key] = definition['default']
-                result.yaml_set_comment_before_after_key(
-                    key, before=f'\n{definition["help"]}\n default: {definition["default"]}', indent=indent)
-        return result
-
-    def yaml_dumps(self, yaml_object):
-        string_stream = io.StringIO()
-        self.yaml.dump(yaml_object, string_stream)
-        output_str = string_stream.getvalue()
-        string_stream.close()
-        return output_str.strip()
 
     async def subscribe_to_algorithm_metrics(self, algorithm: Algorithm, websocket: aiohttp.web.WebSocketResponse):
         with algorithm.metric_event.subscribe() as subscription:
@@ -85,12 +60,8 @@ class Api:
 
         await websocket.send_json(
             data={
-                'initial_configuration': self.yaml_dumps(
-                    self.convert_configuration_values_to_yaml_configuration(
-                        Population.configuration_values(
-                            algorithm.individual_type,
-                        ),
-                    ),
+                'initial_configuration': Population.configuration_values(
+                    algorithm.individual_type,
                 ),
             },
             dumps=ditef_producer_shared.json.json_formatter_compressed,
@@ -101,7 +72,7 @@ class Api:
                 assert message.type == aiohttp.web.WSMsgType.TEXT
                 message = simplejson.loads(message.data)
                 if message['type'] == 'add_population':
-                    await algorithm.add_population(self.yaml.load(message['configuration']))
+                    await algorithm.add_population(message['configuration'])
                 elif message['type'] == 'remove_population':
                     await algorithm.remove_population(message['population_index'])
                 else:
@@ -120,7 +91,7 @@ class Api:
             while True:
                 await websocket.send_json(
                     data={
-                        'configuration': self.yaml_dumps(population.configuration),
+                        'configuration': population.configuration,
                     },
                     dumps=ditef_producer_shared.json.json_formatter_compressed,
                 )
@@ -212,7 +183,7 @@ class Api:
 
         await websocket.send_json(
             data={
-                'configuration': self.yaml_dumps(population.configuration),
+                'configuration': population.configuration,
             },
             dumps=ditef_producer_shared.json.json_formatter_compressed,
         )
@@ -224,7 +195,7 @@ class Api:
                 if message['type'] == 'update_configuration':
                     population.configuration.clear()
                     population.configuration.update(
-                        self.yaml.load(message['configuration']),
+                        message['configuration'],
                     )
                     population.configuration_event.notify()
                 else:

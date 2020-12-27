@@ -62,7 +62,7 @@ export default function PopulationList({ onConnectedChange }) {
   const onWebSocketMessage = useCallback((type, payload) => {
     switch (type) {
       case "initial_configuration": {
-        setInitialConfiguration(payload);
+        setInitialConfiguration(JSON.stringify(payload, null, 2));
         break;
       }
       case "current_metrics": {
@@ -106,12 +106,12 @@ export default function PopulationList({ onConnectedChange }) {
     <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
       <DialogTitle>Add population</DialogTitle>
       <DialogContent>
-        <CodeMirror className={classes.editor} value={configuration} onChanges={editor => setConfiguration(editor.getValue())} options={{ mode: "yaml" }} />
+        <CodeMirror className={classes.editor} value={configuration} onChanges={editor => setConfiguration(editor.getValue())} options={{ mode: "json" }} />
       </DialogContent>
       <DialogActions>
         <Button className={classes.leftButton} onClick={() => setConfiguration(initialConfiguration)}>Reset</Button>
         <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-        <Button onClick={() => { setDialogOpen(false); send("add_population", { configuration: configuration }); }}>Add</Button>
+        <Button onClick={() => { setDialogOpen(false); send("add_population", { configuration: JSON.parse(configuration) }); }}>Add</Button>
       </DialogActions>
     </Dialog>
     <Container className={classes.lastContainer}>
