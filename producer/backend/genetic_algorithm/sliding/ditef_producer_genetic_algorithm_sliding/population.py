@@ -1,47 +1,57 @@
 import asyncio
 import datetime
+import json
 import importlib
 import pandas
+import pathlib
 import random
+import uuid
+import weakref
 
 import ditef_producer_shared.event
+import ditef_producer_shared.json
 import ditef_router.api_client
-import weakref
 
 
 class Population:
 
+    populations = []
+    loaded_default_configuration = None
+
     @staticmethod
     def configuration_values(individual_type: str) -> dict:
-        return {
-            'minimum_amount_of_members': {
-                'help': 'Minimum amount of members in the population',
-                'default': 15,
-            },
-            'maximum_amount_of_members': {
-                'help': 'Maximum amount of members in the population',
-                'default': 25,
-            },
-            'migration_weight': {
-                'help': 'Weight for choosing migration as a random operation',
-                'default': 0.005,
-            },
-            'clone_weight': {
-                'help': 'Weight for choosing cloning with mutations as a random operation',
-                'default': 0.25,
-            },
-            'random_individual_weight': {
-                'help': 'Weight for choosing the creation of a random individual as a random operation',
-                'default': 0.25,
-            },
-            'cross_over_individual_weight': {
-                'help': 'Weight for choosing cross over to create a child from two parents as a random operation',
-                'default': 0.5,
-            },
-            **importlib.import_module(
-                individual_type,
-            ).Individual.configuration_values(),
-        }
+        if Population.loaded_default_configuration is not None:
+            return Population.loaded_default_configuration
+        else:
+            return {
+                'minimum_amount_of_members': {
+                    'help': 'Minimum amount of members in the population',
+                    'default': 15,
+                },
+                'maximum_amount_of_members': {
+                    'help': 'Maximum amount of members in the population',
+                    'default': 25,
+                },
+                'migration_weight': {
+                    'help': 'Weight for choosing migration as a random operation',
+                    'default': 0.005,
+                },
+                'clone_weight': {
+                    'help': 'Weight for choosing cloning with mutations as a random operation',
+                    'default': 0.25,
+                },
+                'random_individual_weight': {
+                    'help': 'Weight for choosing the creation of a random individual as a random operation',
+                    'default': 0.25,
+                },
+                'cross_over_individual_weight': {
+                    'help': 'Weight for choosing cross over to create a child from two parents as a random operation',
+                    'default': 0.5,
+                },
+                **importlib.import_module(
+                    individual_type,
+                ).Individual.configuration_values(),
+            }
 
     @staticmethod
     def purge_dead_populations():
@@ -51,9 +61,66 @@ class Population:
             if population_reference() is not None
         ]
 
-    populations = []
+    @staticmethod
+    def load_populations(individual_type, task_api_client, metric_event, state_path):
+        (state_path/'populations').mkdir(parents=True, exist_ok=True)
+        loaded_populations = []
+        for population_file in (state_path/'populations').glob('*.json'):
+            # check population file
+            with population_file.open('r') as f:
+                try:
+                    population_data = json.load(f)
+                except Exception:
+                    print(f'could not parse: {population_file}')
+                    continue
+            if not 'configuration' in population_data:
+                print('skipping population with missing configuration:', population_file)
+                continue
+            if not 'members' in population_data:
+                print('skipping population with missing members list:', population_file)
+                continue
 
-    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict):
+            # check population configuration
+            load_population = True
+            for required_key in Population.configuration_values(individual_type):
+                if not required_key in population_data['configuration']:
+                    print('missing configuration key:', required_key, 'in file:', population_file)
+                    load_population = False
+            if not load_population:
+                print('skipping population:', population_file)
+                continue
+
+            # create population
+            new_population = Population(
+                individual_type,
+                task_api_client,
+                metric_event,
+                population_data['configuration'],
+                state_path,
+                population_file.stem,
+            )
+
+            # add members to population
+            for member_id in population_data['members']:
+                if member_id in importlib.import_module(individual_type).Individual.individuals:
+                    new_population.load_member_from_static_dict(member_id)
+                else:
+                    print('could not load individual:', member_id)
+            loaded_populations.append(new_population)
+        return loaded_populations
+
+    @staticmethod
+    def empty(individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: pathlib.Path):
+        return Population(
+            individual_type,
+            task_api_client,
+            algorithm_event,
+            configuration,
+            state_path,
+            str(uuid.uuid4()),
+        )
+
+    def __init__(self, individual_type: str, task_api_client: ditef_router.api_client.ApiClient, algorithm_event: ditef_producer_shared.event.BroadcastEvent, configuration: dict, state_path: pathlib.Path, id: str):
         self.individual_type = individual_type
         self.task_api_client = task_api_client
         self.algorithm_metric_event = algorithm_event
@@ -62,6 +129,9 @@ class Population:
         self.metric_event = ditef_producer_shared.event.BroadcastEvent()
         self.members_event = ditef_producer_shared.event.BroadcastEvent()
         self.members = []
+        self.loading_queue = []
+        self.state_path = state_path
+        self.id = id
         self.history = pandas.DataFrame(
             data={
                 'amount_of_members': pandas.Series([], dtype='int64'),
@@ -85,14 +155,26 @@ class Population:
             ).Individual.random(
                 self.task_api_client,
                 self.configuration,
+                self.state_path,
             )
-            self.members.append(random_individual)
-            self.members_event.notify()
-            await random_individual.evaluate()
-            self.members_event.notify()
+            await self.finalize_new_member_operation(random_individual)
             self.append_to_history()
             self.algorithm_metric_event.notify()
             self.metric_event.notify()
+
+    async def finalize_new_member_operation(self, individual):
+        self.members.append(individual)
+        self.write_to_file()
+        self.members_event.notify()
+        await individual.evaluate()
+        self.members_event.notify()
+
+    def write_to_file(self):
+        data = {
+            'members': [member.id for member in self.members],
+            'configuration': self.configuration,
+        }
+        ditef_producer_shared.json.dump_complete(data, self.state_path/'populations'/(f'{self.id}.json'))
 
     async def random_operation(self):
         Population.purge_dead_populations()
@@ -121,11 +203,9 @@ class Population:
             self.task_api_client,
             self.configuration,
             'migrant',
+            self.state_path,
         )
-        self.members.append(migrated_individual)
-        self.members_event.notify()
-        await migrated_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(migrated_individual)
 
     async def clone_operation(self):
         cloned_individual = importlib.import_module(
@@ -135,12 +215,10 @@ class Population:
             self.task_api_client,
             self.configuration,
             'clone',
+            self.state_path,
         )
         cloned_individual.mutate()
-        self.members.append(cloned_individual)
-        self.members_event.notify()
-        await cloned_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(cloned_individual)
 
     async def random_individual_operation(self):
         random_individual = importlib.import_module(
@@ -148,11 +226,9 @@ class Population:
         ).Individual.random(
             self.task_api_client,
             self.configuration,
+            self.state_path,
         )
-        self.members.append(random_individual)
-        self.members_event.notify()
-        await random_individual.evaluate()
-        self.members_event.notify()
+        await self.finalize_new_member_operation(random_individual)
 
     async def cross_over_individual_operation(self):
         parent_a, parent_b = random.sample(self.members, k=2)
@@ -163,12 +239,23 @@ class Population:
             parent_b,
             self.task_api_client,
             self.configuration,
+            self.state_path,
         )
         crossed_over_individual.mutate()
-        self.members.append(crossed_over_individual)
+        await self.finalize_new_member_operation(crossed_over_individual)
+
+    def load_member_from_static_dict(self, individual_id):
+        if individual_id not in importlib.import_module(self.individual_type).Individual.individuals:
+            print('could not find individual', individual_id, 'in dict')
+            return
+        individual = importlib.import_module(
+            self.individual_type,
+        ).Individual.individuals[individual_id]
+        individual.configuration = self.configuration
+        self.members.append(individual)
         self.members_event.notify()
-        await crossed_over_individual.evaluate()
-        self.members_event.notify()
+        if individual.fitness() is None:
+            self.loading_queue.append(individual)
 
     def ensure_maximum_amount_of_members(self):
         if len(self.members) > self.configuration['maximum_amount_of_members']:
@@ -237,6 +324,13 @@ class Population:
 
     async def run(self):
         try:
+            while True:
+                try:
+                    individual = self.loading_queue.pop(0)
+                    await individual.evaluate()
+                    self.members_event.notify()
+                except IndexError:
+                    break
             while True:
                 await self.ensure_minimum_amount_of_members()
                 await self.random_operation()
