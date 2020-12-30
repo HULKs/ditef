@@ -1,14 +1,14 @@
 import copy
-from pathlib import Path
+import pathlib
 import random
 import typing
 import uuid
 
-from ditef_producer_shared.genetic_individual import AbstractIndividual
+import ditef_producer_shared.genetic_individual
 import ditef_router.api_client
 
 
-class Individual(AbstractIndividual):
+class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
 
     def individual_type(self) -> str:
         return('ball_detection_cnn')
@@ -16,192 +16,120 @@ class Individual(AbstractIndividual):
     @staticmethod
     def configuration_values() -> dict:
         return {
-            'max_mutations': {
-                'help': 'Maximum amount of mutations (suitable for changing online)',
-                'default': 10,
-            },
-            'type': {
-                'help': 'NN type',
-                'default': 'positioner',
-            },
-            'final_layer_neurons': {
-                'help': 'Number of output neurons',
-                'default': 3,
-            },
-            'loss': {
-                'help': 'loss function',
-                'default': 'mean_squared_error',
-            },
-            'input_size_x': {
-                'help': 'Pixel columns in input images',
-                'default': 32,
-            },
-            'input_size_y': {
-                'help': 'Pixel rows in input images',
-                'default': 32,
-            },
-            'input_channels': {
-                'help': 'Values per pixel',
-                'default': 1,
-            },
-            'metrics': {
-                'help': 'Metrics used for evaluation',
-                'default': ['accuracy'],
-            },
-            'conv_activation_functions': {
-                'help': 'Available activation functions for convolutional layers',
-                'default': ['elu',
-                            'hard_sigmoid',
-                            'linear',
-                            'relu',
-                            'selu',
-                            'sigmoid',
-                            #'softmax', not supported for conv layers by CompiledNN
-                            #'softplus', not supported by CompiledNN
-                            #'softsign', suspicious
-                            'tanh'],
-            },
-            'dense_activation_functions': {
-                'help': 'Available activation functions for dense layers',
-                'default': ['elu',
-                            'hard_sigmoid',
-                            'linear',
-                            'relu',
-                            'selu',
-                            'sigmoid',
-                            #'softmax', not supported for conv layers by CompiledNN
-                            #'softplus', not supported by CompiledNN
-                            #'softsign', suspicious
-                            'tanh'],
-            },
-            'final_activation_functions': {
-                'help': 'Available activation functions for the final layer',
-                'default': ['elu', # good
-                            #'hard_sigmoid', not useful when working with confidence thesholds
-                            'linear',
-                            'relu',
-                            'selu'],
-            },
-            'optimizers': {
-                'help': 'Available optimizers',
-                'default': ['Adadelta',
-                            'Adam',
-                            'Adamax',
-                            'Nadam',
-                            'RMSprop',
-                            'SGD'],
-            },
-            'batch_size': {
-                'help': 'Size of batches datasets are being split into',
-                'default': 32,
-            },
-            'compiledNN_threshold': {
-                'help': 'CompiledNN descrepency threshold',
-                'default': 0.001,
-            },
-            'computational_cost_factor': {
-                'help': 'Scalar for computational costs in fitness function (suitable for changing online)',
-                'default': 0.000000005,
-            },
-            'train_dataset': {
-                'help': 'Path to dataset used for fitting',
-                'default': 'data/HULKs/datasets/ball_detection/positives-v1-train.tfrecord',
-            },
-            'test_dataset': {
-                'help': 'Path to dataset used for evaluating',
-                'default': 'data/HULKs/datasets/ball_detection/positives-v1-test.tfrecord',
-            },
-            'compiledNN_predicter': {
-                'help': 'Path to compiledNN predicter',
-                'default': 'predicter/build/predicter',
-            },
+            # Maximum amount of mutations (suitable for changing online)
+            'max_mutations': 10,
+            # NN type (positioner, classifier, preclassifier)
+            'type': 'positioner',
+            # Number of output neurons
+            'final_layer_neurons': 3,
+            # loss function
+            'loss': 'mean_squared_error',
+            # Pixel columns in input images
+            'input_size_x': 32,
+            # Pixel rows in input images
+            'input_size_y': 32,
+            # Values per pixel
+            'input_channels': 1,
+            # Metrics used for evaluation
+            'metrics': ['accuracy'],
+            # Available activation functions for convolutional layers
+            'conv_activation_functions': [
+                'elu',
+                'hard_sigmoid',
+                'linear',
+                'relu',
+                'selu',
+                'sigmoid',
+                #'softmax', not supported for conv layers by CompiledNN
+                #'softplus', not supported by CompiledNN
+                #'softsign', suspicious
+                'tanh'],
+            # Available activation functions for dense layers
+            'dense_activation_functions': [
+                'elu',
+                'hard_sigmoid',
+                'linear',
+                'relu',
+                'selu',
+                'sigmoid',
+                #'softmax', not supported for conv layers by CompiledNN
+                #'softplus', not supported by CompiledNN
+                #'softsign', suspicious
+                'tanh'],
+            # Available activation functions for the final layer
+            'final_activation_functions': [
+                'elu', # good
+                #'hard_sigmoid', not useful when working with confidence thesholds
+                'linear',
+                'relu',
+                'selu'],
+            # Available optimizers
+            'optimizers': [
+                'Adadelta',
+                'Adam',
+                'Adamax',
+                'Nadam',
+                'RMSprop',
+                'SGD'],
+            # Size of batches datasets are being split into
+            'batch_size': 32,
+            # CompiledNN descrepency threshold
+            'compiledNN_threshold': 0.001,
+            # Scalar for computational costs in fitness function (suitable for changing online)
+            'computational_cost_factor': 0.000000005,
+            # Path to dataset used for fitting
+            'train_dataset': 'data/HULKs/datasets/ball_detection/positives-v1-train.tfrecord',
+            # Path to dataset used for evaluating
+            'test_dataset': 'data/HULKs/datasets/ball_detection/positives-v1-test.tfrecord',
+            # Path to compiledNN predicter
+            'compiledNN_predicter': 'predicter/build/predicter',
+            # Parameters for online data augmentation
             'augment_params': {
-                'help': 'Parameters for online data augmentation',
-                'default': {
-                    'random_brightness_delta': {'help': 'Blabla', 'default': 0.25 * 255.0},
-                    'random_brightness_seed': {'help': 'Blablabla', 'default': 42},
-                },
+                'random_brightness_delta': 0.25 * 255.0,
+                'random_brightness_seed': 42,
             },
-            'mutate_change_training_epochs_weight': {
-                'help': 'Weight of changing training epochs when choosing a random mutation',
-                'default': 1,
-            },
-            'mutate_add_convolution_layer_weight': {
-                'help': 'Weight of adding convolution layer when choosing a random mutation',
-                'default': 0.5,
-            },
-            'mutate_remove_convolution_layer_weight': {
-                'help': 'Weight of removing convolution layer when choosing a random mutation',
-                'default': 0.5,
-            },
-            'mutate_change_convolution_layer_type_weight': {
-                'help': 'Weight of changing convolution layer type when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_kernels_weight': {
-                'help': 'Weight of changing convolution layer kernels when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_kernel_size_weight': {
-                'help': 'Weight of changing convolution layer kernel size when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_activation_function_weight': {
-                'help': 'Weight of changing convolution layer activation function when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_pooling_weight': {
-                'help': 'Weight of changing convolution layer pooling when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_batch_normalization_weight': {
-                'help': 'Weight of changing convolution layer batch normalization when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_drop_out_weight': {
-                'help': 'Weight of changing convolution layer drop out when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_change_convolution_layer_stride_weight': {
-                'help': 'Weight of changing convolution layer stride when choosing a random mutation',
-                'default': 0.25,
-            },
-            'mutate_add_dense_layer_weight': {
-                'help': 'Weight of adding dense layer when choosing a random mutation',
-                'default': 1,
-            },
-            'mutate_remove_dense_layer_weight': {
-                'help': 'Weight of removing dense layer when choosing a random mutation',
-                'default': 1,
-            },
-            'mutate_change_dense_layer_weight': {
-                'help': 'Weight of changing dense layer when choosing a random mutation',
-                'default': 1,
-            },
-            'mutate_change_final_layer_activation_weight': {
-                'help': 'Weight of changing final layer activation when choosing a random mutation',
-                'default': 0.5,
-            },
-            'mutate_change_final_layer_batch_normalization_weight': {
-                'help': 'Weight of changing final layer batch normalization when choosing a random mutation',
-                'default': 0.5,
-            },
-            'mutate_change_optimizer_weight': {
-                'help': 'Weight of changing optimizer when choosing a random mutation',
-                'default': 1,
-            },
-            'mutate_change_initial_learning_rate_weight': {
-                'help': 'Weight of changing initial learning rate when choosing a random mutation',
-                'default': 1,
-            },
-            'mutate_change_learning_rate_factor_per_epoch_weight': {
-                'help': 'Weight of changing learning rate factor per epoch when choosing a random mutation',
-                'default': 1,
-            },
+            # Weight of changing training epochs when choosing a random mutation
+            'mutate_change_training_epochs_weight': 1,
+            # Weight of adding convolution layer when choosing a random mutation
+            'mutate_add_convolution_layer_weight': 0.5,
+            # Weight of removing convolution layer when choosing a random mutation
+            'mutate_remove_convolution_layer_weight': 0.5,
+            # Weight of changing convolution layer type when choosing a random mutation
+            'mutate_change_convolution_layer_type_weight': 0.25,
+            # Weight of changing convolution layer kernels when choosing a random mutation
+            'mutate_change_convolution_layer_kernels_weight': 0.25,
+            # Weight of changing convolution layer kernel size when choosing a random mutation
+            'mutate_change_convolution_layer_kernel_size_weight': 0.25,
+            # Weight of changing convolution layer activation function when choosing a random mutation
+            'mutate_change_convolution_layer_activation_function_weight': 0.25,
+            # Weight of changing convolution layer pooling when choosing a random mutation
+            'mutate_change_convolution_layer_pooling_weight': 0.25,
+            # Weight of changing convolution layer batch normalization when choosing a random mutation
+            'mutate_change_convolution_layer_batch_normalization_weight': 0.25,
+            # Weight of changing convolution layer drop out when choosing a random mutation
+            'mutate_change_convolution_layer_drop_out_weight': 0.25,
+            # Weight of changing convolution layer stride when choosing a random mutation
+            'mutate_change_convolution_layer_stride_weight': 0.25,
+            # Weight of adding dense layer when choosing a random mutation
+            'mutate_add_dense_layer_weight': 1,
+            # Weight of removing dense layer when choosing a random mutation
+            'mutate_remove_dense_layer_weight': 1,
+            # Weight of changing dense layer when choosing a random mutation
+            'mutate_change_dense_layer_weight': 1,
+            # Weight of changing final layer activation when choosing a random mutation
+            'mutate_change_final_layer_activation_weight': 0.5,
+            # Weight of changing final layer batch normalization when choosing a random mutation
+            'mutate_change_final_layer_batch_normalization_weight': 0.5,
+            # Weight of changing optimizer when choosing a random mutation
+            'mutate_change_optimizer_weight': 1,
+            # Weight of changing initial learning rate when choosing a random mutation
+            'mutate_change_initial_learning_rate_weight': 1,
+            # Weight of changing learning rate factor per epoch when choosing a random mutation
+            'mutate_change_learning_rate_factor_per_epoch_weight': 1,
         }
 
     @staticmethod
-    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
+    def random(task_api_client: ditef_router.api_client.ApiClient, configuration: dict, state_path: pathlib.Path) -> 'Individual':
         '''Generates a new random individual'''
 
         individual_id = str(uuid.uuid4())
@@ -255,13 +183,14 @@ class Individual(AbstractIndividual):
             individual_id,
             genome,
             'random',
+            state_path/'individuals'/f'{individual_id}.json',
         )
-        Individual.individuals[individual_id].write_to_file(individuals_path)
+        Individual.individuals[individual_id].write_to_file()
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, individuals_path: Path) -> 'Individual':
+    def clone(parent: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, creation_type: str, state_path: pathlib.Path) -> 'Individual':
         '''Creates a copy of a parent individual'''
 
         individual_id = str(uuid.uuid4())
@@ -271,17 +200,16 @@ class Individual(AbstractIndividual):
             individual_id,
             copy.deepcopy(parent.genome),
             creation_type,
+            state_path/'individuals'/f'{individual_id}.json',
         )
         Individual.individuals[individual_id].genealogy_parents = [parent.id]
-        Individual.individuals[individual_id].write_to_file(individuals_path)
-        parent.genealogy_children.append(individual_id)
-        parent.write_to_file(individuals_path)
-        parent.update_event.notify()
+        Individual.individuals[individual_id].write_to_file()
+        parent.add_child(individual_id)
 
         return Individual.individuals[individual_id]
 
     @staticmethod
-    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, individuals_path: Path) -> 'Individual':
+    def cross_over_one(parent_a: 'Individual', parent_b: 'Individual', task_api_client: ditef_router.api_client.ApiClient, configuration: dict, state_path: pathlib.Path) -> 'Individual':
         '''Creates one cross-overed individual from two parent individuals'''
 
         individual_id = str(uuid.uuid4())
@@ -308,18 +236,15 @@ class Individual(AbstractIndividual):
                     random.choice([parent_a.genome['learning_rate_factor_per_epoch'], parent_b.genome['learning_rate_factor_per_epoch']])
             },
             'cross_over_one',
+            state_path/'individuals'/f'{individual_id}.json',
         )
         Individual.individuals[individual_id].genealogy_parents = [
             parent_a.id,
             parent_b.id,
         ]
-        Individual.individuals[individual_id].write_to_file(individuals_path)
-        parent_a.genealogy_children.append(individual_id)
-        parent_a.write_to_file(individuals_path)
-        parent_a.update_event.notify()
-        parent_b.genealogy_children.append(individual_id)
-        parent_b.write_to_file(individuals_path)
-        parent_b.update_event.notify()
+        Individual.individuals[individual_id].write_to_file()
+        parent_a.add_child(individual_id)
+        parent_b.add_child(individual_id)
 
         return Individual.individuals[individual_id]
 
@@ -374,6 +299,7 @@ class Individual(AbstractIndividual):
             }
             mutations = list(mutation_weights.keys())
             random.choices(mutations, [mutation_weights[t] for t in mutations])[0]()
+        self.write_to_file()
         self.update_event.notify()
 
     async def evaluate(self):
@@ -386,6 +312,7 @@ class Individual(AbstractIndividual):
             }
         )
         self.evaluation_result['computational_cost'] = self.computational_cost()
+        self.write_to_file()
         self.update_event.notify()
 
     def fitness(self) -> typing.Optional[float]:
