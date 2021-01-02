@@ -6,6 +6,7 @@ import pathlib
 import PyCompiledNN
 import subprocess
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 
 def run(payload):
@@ -13,17 +14,33 @@ def run(payload):
     configuration = payload['configuration']
     run_result = {
         'compiledNN_result': 500.0,
-        'accuracy': 0,
+        'primary_metric': 0,
         'training_progression': [],
     }
     tmp_model_path = pathlib.Path('tmp_' + payload['id'] + '.hdf5')
-    print("start evaluation of", payload['id'])
+    print('start evaluation of', payload['id'])
     try:
+        metrics = []
+
+        for metric in configuration['metrics']:
+            if metric[0] == 'f' and metric[-5:] == 'score':
+                metrics.append(
+                    tfa.metrics.FBetaScore(
+                        name=metric,
+                        num_classes=2,
+                        average='micro',
+                        threshold=0.5, #TODO: fscore threshold
+                        beta=float(metric[1:-5]),
+                    )
+                )
+            else:
+                metrics.append(metric)
+
         model = build_model(genome, configuration)
         model.compile(
             optimizer=genome['optimizer'],
             loss=configuration['loss'],
-            metrics=configuration['metrics']
+            metrics=metrics,
         )
 
         train_dataset = get_dataset(tf.data.TFRecordDataset(configuration['train_dataset']),
@@ -56,7 +73,7 @@ def run(payload):
         run_result['training_progression'] = [
             {
                 name: tf_train_result.history[name][ep]
-                for name in (['loss'] + configuration['metrics'])
+                for name in tf_train_result.history.keys()
             }
             for ep in range(genome['training_epochs'])
         ]

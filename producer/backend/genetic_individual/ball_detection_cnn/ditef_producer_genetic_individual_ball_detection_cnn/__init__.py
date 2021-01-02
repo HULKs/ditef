@@ -322,7 +322,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
             return -1
         if self.evaluation_result['compiledNN_result'] > self.configuration['compiledNN_threshold']:
             return 0
-        return self.evaluation_result['accuracy'] - (self.computational_cost() * self.configuration['computational_cost_factor'])
+        return self.evaluation_result[self.configuration['metrics'][0]] - (self.computational_cost() * self.configuration['computational_cost_factor'])
 
     def mutate_change_training_epochs(self):
         '''Changes training epochs to a new random value near the previous'''
