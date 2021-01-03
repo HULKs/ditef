@@ -139,7 +139,7 @@ export default function PopulationList({ onConnectedChange }) {
                 <TableCell className={classes.noWrap}>
                   <Link to={`/population/${populationId}`}>{populationId}</Link>
                 </TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.type}</TableCell>
+                <TableCell className={classes.noWrap}>"{populationMetrics.type}"</TableCell>
                 <TableCell className={classes.noWrap}>{populationMetrics.amount_of_evaluated_members} / {populationMetrics.amount_of_members}</TableCell>
                 <TableCell className={classes.noWrap}>
                   {populationMetrics.fitness_median === null ? 'waiting' : populationMetrics.fitness_median.toFixed(4)}

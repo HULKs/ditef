@@ -137,6 +137,8 @@ export default function Population({ onConnectedChange }) {
     return <Typography>Loading...</Typography>;
   }
 
+  const populationType = detailedMetrics.current.type;
+
   const detailedMetricsHistory = detailedMetrics.history.data.map(item =>
     item.reduce((values, current, index) => ({
       ...values,
@@ -213,7 +215,7 @@ export default function Population({ onConnectedChange }) {
       </Grid>
     </Container>
     <Container className={classes.lastContainer}>
-      <Typography variant="h5" className={classes.memberHeadingSpacing}>Members</Typography>
+      <Typography variant="h5" className={classes.memberHeadingSpacing}>"{populationType}" Members</Typography>
       <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
         <Table size="small">
           <TableHead>

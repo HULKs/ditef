@@ -330,7 +330,7 @@ export default function BallDetectionCNNIndividual({ url, onConnectedChange }) {
     }
   }
 
-  const neuralnetType = configuration ? configuration.type.charAt(0).toUpperCase() + configuration.type.slice(1) : "Neural Net";
+  const neuralnetType = configuration ? configuration.type : "Neural Net";
 
   useEffect(() => {
     onConnectedChange(connected);
@@ -346,7 +346,7 @@ export default function BallDetectionCNNIndividual({ url, onConnectedChange }) {
 
   return <>
     <Container>
-      {configuration && <Typography variant="h5" className={classes.headingSpacing}>{neuralnetType} Genome</Typography>}
+      {configuration && <Typography variant="h5" className={classes.headingSpacing}>"{neuralnetType}" Genome</Typography>}
       <Paper elevation={3} className={classes.genomePaper}>
         <svg width="100%" height="256">
           <rect x="0" y="0"
