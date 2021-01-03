@@ -119,7 +119,7 @@ export default function Population({ onConnectedChange }) {
   );
   const [currentConfiguration, setCurrentConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const individualString = individualType ? individualType.substring('ditef_producer_genetic_individual_'.length).charAt(0).toUpperCase() + individualType.substring('ditef_producer_genetic_individual_'.length).slice(1) : "";
+  const individualString = individualType ? ('"' + individualType.substring('ditef_producer_genetic_individual_'.length) + '"') : "";
 
   useEffect(() => {
     setCurrentConfiguration(configuration);

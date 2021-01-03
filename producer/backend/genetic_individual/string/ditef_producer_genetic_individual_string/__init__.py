@@ -17,6 +17,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
     @staticmethod
     def configuration_values() -> dict:
         return {
+            'type': 'default',
             # string to strive for
             'target_string': "This is an example string.",
             # Pool for random string operations to choose characters from
