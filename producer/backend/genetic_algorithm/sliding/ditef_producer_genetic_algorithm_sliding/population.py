@@ -283,6 +283,8 @@ class Population:
             if fitness is not None
         ])
         return {
+            'type': self.configuration['type'],
+            'total_individuals': len(importlib.import_module(self.individual_type).Individual.individuals),
             'amount_of_members': len(fitnesses),
             'amount_of_evaluated_members': len(evaluated_fitnesses),
             'amount_of_unevaluated_members': len(fitnesses) - len(evaluated_fitnesses),

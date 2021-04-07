@@ -16,6 +16,7 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
     @staticmethod
     def configuration_values() -> dict:
         return {
+            'type': 'default',
             # Amount of bits in bitvector genome
             'genome_size': 100,
             # Maximum amount of mutations

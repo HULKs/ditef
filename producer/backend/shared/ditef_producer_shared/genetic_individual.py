@@ -54,14 +54,14 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
             except Exception:
                 print(f'could not parse: {individual_file}')
                 return
-        for required_key in ['genome', 'creation_type', 'genealogy_parents', 'genealogy_children']:
+        for required_key in ['genome', 'configuration', 'creation_type', 'genealogy_parents', 'genealogy_children']:
             if not required_key in individual_data:
                 print('missing key:', required_key, 'in file:', individual_file)
                 return
 
         AbstractIndividual.individuals[individual_file.stem] = importlib.import_module(individual_type).Individual(
             task_api_client,
-            configuration,
+            individual_data['configuration'],
             individual_file.stem,
             individual_data['genome'],
             individual_data['creation_type'],
@@ -77,6 +77,7 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
     def write_to_file(self):
         data = {
             'genome': self.genome,
+            'configuration': self.configuration,
             'creation_type': self.creation_type,
             'genealogy_parents':  self.genealogy_parents,
             'genealogy_children': self.genealogy_children,
@@ -118,8 +119,10 @@ class AbstractIndividual(metaclass=abc.ABCMeta):
         await websocket.send_json(
             data={
                 'genome': self.genome,
+                'configuration': self.configuration,
                 'fitness': self.fitness(),
                 'creation_type': self.creation_type,
+                'evaluation_result': self.evaluation_result,
                 'genealogy_parents': {
                     parent_id: {
                         'fitness': AbstractIndividual.individuals[parent_id].fitness(),

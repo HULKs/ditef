@@ -57,10 +57,15 @@ const useStyles = makeStyles(theme => ({
 
 export default function PopulationList({ onConnectedChange }) {
   const classes = useStyles();
+  const [individualType, setIndividualType] = useState();
   const [initialConfiguration, setInitialConfiguration] = useState();
   const [currentMetrics, setCurrentMetrics] = useState();
   const onWebSocketMessage = useCallback((type, payload) => {
     switch (type) {
+      case "individual_type": {
+        setIndividualType(payload);
+        break;
+      }
       case "initial_configuration": {
         setInitialConfiguration(JSON.stringify(payload, null, 2));
         break;
@@ -82,6 +87,7 @@ export default function PopulationList({ onConnectedChange }) {
   );
   const [configuration, setConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const individualString = individualType ? ('"' + individualType.substring('ditef_producer_genetic_individual_'.length) + '"') : "";
 
   useEffect(() => {
     setConfiguration(initialConfiguration);
@@ -115,20 +121,15 @@ export default function PopulationList({ onConnectedChange }) {
       </DialogActions>
     </Dialog>
     <Container className={classes.lastContainer}>
-      <Typography variant="h5" className={classes.headingSpacing}>Populations</Typography>
+<Typography variant="h5" className={classes.headingSpacing}>{individualString} populations after {currentMetrics && currentMetrics.length > 0 && currentMetrics[0].total_individuals} individuals born</Typography>
       <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell className={classes.noWrap}>Population</TableCell>
-              <TableCell className={classes.noWrap}>#total</TableCell>
+              <TableCell className={classes.noWrap}></TableCell>
+              <TableCell className={classes.noWrap}>Population type</TableCell>
               <TableCell className={classes.noWrap}>#evaluated</TableCell>
-              <TableCell className={classes.noWrap}>#unevaluated</TableCell>
-              <TableCell className={classes.noWrap}>Minimum fitness</TableCell>
-              <TableCell className={classes.noWrap}>Maximum fitness</TableCell>
-              <TableCell className={classes.noWrap}>Median fitness</TableCell>
-              <TableCell className={classes.noWrap}>Mean fitness</TableCell>
-              <TableCell className={classes.noWrap}>Fitness standard deviation</TableCell>
+              <TableCell className={classes.noWrap}>Median/Maximum</TableCell>
               <TableCell className={classes.noWrap}>Operations</TableCell>
             </TableRow>
           </TableHead>
@@ -138,14 +139,13 @@ export default function PopulationList({ onConnectedChange }) {
                 <TableCell className={classes.noWrap}>
                   <Link to={`/population/${populationId}`}>{populationId}</Link>
                 </TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.amount_of_members}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.amount_of_evaluated_members}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.amount_of_unevaluated_members}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_minimum ? populationMetrics.fitness_minimum.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_maximum ? populationMetrics.fitness_maximum.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_median ? populationMetrics.fitness_median.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_mean ? populationMetrics.fitness_mean.toFixed(2) : "N/A"}</TableCell>
-                <TableCell className={classes.noWrap}>{populationMetrics.fitness_standard_deviation ? populationMetrics.fitness_standard_deviation.toFixed(2) : "N/A"}</TableCell>
+                <TableCell className={classes.noWrap}>"{populationMetrics.type}"</TableCell>
+                <TableCell className={classes.noWrap}>{populationMetrics.amount_of_evaluated_members} / {populationMetrics.amount_of_members}</TableCell>
+                <TableCell className={classes.noWrap}>
+                  {populationMetrics.fitness_median === null ? 'waiting' : populationMetrics.fitness_median.toFixed(4)}
+                  /
+                  {populationMetrics.fitness_maximum === null ? 'waiting' : populationMetrics.fitness_maximum.toFixed(4)}
+                </TableCell>
                 <TableCell className={classes.noWrap}>
                   <Button onClick={() => send("remove_population", { population_index: populationId })}>Remove</Button>
                 </TableCell>

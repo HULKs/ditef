@@ -119,6 +119,7 @@ export default function Population({ onConnectedChange }) {
   );
   const [currentConfiguration, setCurrentConfiguration] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const individualString = individualType ? ('"' + individualType.substring('ditef_producer_genetic_individual_'.length) + '"') : "";
 
   useEffect(() => {
     setCurrentConfiguration(configuration);
@@ -135,6 +136,8 @@ export default function Population({ onConnectedChange }) {
   if (!detailedMetrics || !configuration || !individualType || !members) {
     return <Typography>Loading...</Typography>;
   }
+
+  const populationType = detailedMetrics.current.type;
 
   const detailedMetricsHistory = detailedMetrics.history.data.map(item =>
     item.reduce((values, current, index) => ({
@@ -212,12 +215,12 @@ export default function Population({ onConnectedChange }) {
       </Grid>
     </Container>
     <Container className={classes.lastContainer}>
-      <Typography variant="h5" className={classes.memberHeadingSpacing}>Members</Typography>
+      <Typography variant="h5" className={classes.memberHeadingSpacing}>"{populationType}" Members</Typography>
       <TableContainer component={({ ...props }) => <Paper elevation={3} {...props} />}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell className={classes.noWrap}>Individual</TableCell>
+              <TableCell className={classes.noWrap}>{individualString} Individual</TableCell>
               <TableCell className={classes.noWrap}>Fitness</TableCell>
             </TableRow>
           </TableHead>
@@ -227,7 +230,7 @@ export default function Population({ onConnectedChange }) {
                 <TableCell className={classes.noWrap}>
                   <Link to={`/individual/${memberId}?type=${encodeURIComponent(individualType)}&url=${encodeURIComponent(member.url)}`}>{memberId}</Link>
                 </TableCell>
-                <TableCell className={classes.noWrap}>{member.fitness ? member.fitness : "N/A"}</TableCell>
+                <TableCell className={classes.noWrap}>{member.fitness === null ? "waiting for evaluation" :member.fitness}</TableCell>
               </TableRow>
             )}
             {Object.keys(members).length === 0 &&

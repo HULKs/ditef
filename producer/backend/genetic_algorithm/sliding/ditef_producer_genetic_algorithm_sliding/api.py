@@ -60,6 +60,7 @@ class Api:
 
         await websocket.send_json(
             data={
+                'individual_type': algorithm.individual_type,
                 'initial_configuration': Population.configuration_values(
                     algorithm.individual_type,
                 ),
