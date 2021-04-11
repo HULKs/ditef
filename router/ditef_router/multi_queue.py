@@ -1,4 +1,5 @@
 import asyncio
+import random
 import typing
 
 
@@ -32,8 +33,10 @@ class MultiQueue:
         If all queues of the given types are empty, wait until an item is
         available.'''
 
+        types_copy = list(types)
         while True:
-            for type in types:
+            random.shuffle(types_copy)
+            for type in types_copy:
                 queue = self._get_queue_of_type(type)
                 if len(queue) > 0:
                     return queue.pop(0)
