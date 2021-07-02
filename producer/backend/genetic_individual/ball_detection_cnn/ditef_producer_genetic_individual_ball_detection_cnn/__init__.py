@@ -411,10 +411,10 @@ class Individual(ditef_producer_shared.genetic_individual.AbstractIndividual):
         if self.evaluation_result is None:
             return None
         if 'exception' in self.evaluation_result:
-            return -1
+            return -100
         if self.evaluation_result['compiledNN_result'] > self.configuration[
                 'compiledNN_threshold']:
-            return 0
+            return -99
         metric_factor = -1 if self.configuration[
             'negate_metric_in_fitness'] else 1
         return (metric_factor *
