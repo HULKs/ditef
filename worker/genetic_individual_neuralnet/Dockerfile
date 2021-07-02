@@ -18,7 +18,7 @@ RUN git clone https://github.com/boostorg/boost.git \
     && ./bootstrap.sh --prefix=/usr \
     && ./b2 install
 
-RUN pip install git+https://github.com/h3ndrk/PyCompiledNN.git tensorflow_addons
+RUN pip install git+https://github.com/h3ndrk/PyCompiledNN.git tensorflow-gpu tensorflow_addons
 
 COPY genetic_individual_neuralnet/ /genetic_individual_neuralnet/
 COPY worker/ /worker/
